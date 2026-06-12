@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Ads 加料蓋漢堡 Playable Demo</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+    
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #0b0f19;
+      color: #f1f5f9;
+      overflow-x: hidden;
+    }
+
+    /* 模擬 image_a42b16.png 的暮色落日漸層背景 */
+    .phone-bg {
+      background: linear-gradient(to bottom, #191635 0%, #290e38 40%, #5d1624 75%, #b5492f 100%);
+    }
+
+    /* 閃光燈特效 */
+    .shutter-flash {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: white;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 100;
+      transition: opacity 0.1s ease-out;
+    }
+    .shutter-flash.flash {
+      opacity: 1;
+    }
+
+    /* 流程圖高亮 */
+    .flow-node {
+      transition: all 0.2s ease;
+      border: 1px solid #334155;
+    }
+    .flow-node.active {
+      border-color: #f59e0b;
+      background-color: rgba(245, 158, 11, 0.15);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+      transform: scale(1.02);
+    }
+    .flow-node.active-danger {
+      border-color: #ef4444;
+      background-color: rgba(239, 68, 68, 0.15);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+    }
+
+    /* 旋轉大轉盤動畫 */
+    @keyframes spin-wheel {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .wheel-spinning {
+      animation: spin-wheel 0.4s linear infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <header class="bg-slate-900 border-b border-slate-800 px-6 py-3.5 flex justify-between items-center shadow-lg">
+    <div class="flex items-center space-x-3">
+      <div class="bg-amber-500 text-slate-950 p-1.5 rounded-lg font-black text-lg">🍔</div>
+      <div>
+        <h1 class="text-md font-black text-white tracking-wide">Google Ads 試玩廣告模擬控制台</h1>
+        <p class="text-xs text-slate-400">高度契合 image_a42b16.png 規格且修正相容性崩潰 bug</p>
+      </div>
+    </div>
+    
+    <!-- 作弊器：上方計時與重置 -->
+    <div class="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 flex items-center space-x-3 text-xs">
+      <div class="flex items-center space-x-1.5">
+        <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+        <span class="text-slate-400">廣告開啟計時：</span>
+        <span id="cheat-timer" class="text-amber-400 font-mono font-black text-sm">0.0 秒</span>
+      </div>
+      <button onclick="resetCheatTimer()" class="bg-red-900/80 hover:bg-red-800 text-red-200 px-2.5 py-1 rounded-md font-bold transition text-[10px]">
+        <i class="fa-solid fa-arrow-rotate-left mr-1"></i> 重置秒數
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 overflow-hidden">
+    
+    <!-- 左側：手機廣告模擬器 -->
+    <div class="lg:col-span-7 xl:col-span-8 flex flex-col items-center justify-center bg-slate-950/40 rounded-2xl border border-slate-800 p-4 min-h-[680px]">
+      
+      <!-- 頂部資訊列 -->
+      <div class="w-full max-w-sm flex justify-between items-center mb-2.5 text-xs text-slate-400 px-2">
+        <div class="flex items-center space-x-1">
+          <i class="fa-solid fa-mobile-screen"></i>
+          <span>手機預覽區 (自動偵測尺寸)</span>
+        </div>
+        <button id="btn-sound" onclick="toggleMute()" class="hover:text-white transition">
+          <i class="fa-solid fa-volume-high text-amber-400 mr-1"></i> 音效開啟
+        </button>
+      </div>
+
+      <!-- 手機殼本體 -->
+      <div id="phone-container" onclick="handlePhoneClick(event)" class="relative w-[360px] h-[640px] bg-slate-900 rounded-[36px] border-[8px] border-slate-800 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col">
+        
+        <!-- 手機頂部聽筒 -->
+        <div class="absolute top-2 left-1/2 -translate-x-1/2 w-32 h-4 bg-slate-800 rounded-full z-50 flex items-center justify-center">
+          <div class="w-16 h-1 bg-slate-700 rounded-full"></div>
+          <div class="w-2 h-2 bg-slate-700 rounded-full ml-3"></div>
+        </div>
+
+        <!-- 試玩廣告內頁容器 (跳過登入頁直接進入遊戲) -->
+        <div class="relative flex-1 w-full h-full overflow-hidden flex flex-col phone-bg select-none">
+          
+          <!-- 快門白光效果 -->
+          <div id="shutter-flash" class="shutter-flash"></div>
+
+          <!-- 右側層數、歷史乘數懸浮面板 -->
+          <div class="absolute top-8 right-3 flex flex-col items-end space-y-2 z-20 pointer-events-none">
+            <!-- 倍數盾牌 -->
+            <div class="bg-gradient-to-b from-blue-400 to-blue-600 text-white border-2 border-sky-300 rounded-xl p-1.5 shadow-md flex flex-col items-center min-w-[65px]">
+              <span class="text-[8px] font-bold tracking-wider uppercase opacity-90">目前倍數</span>
+              <span id="hud-multiplier" class="text-sm font-black tracking-tighter">1.00x</span>
+            </div>
+
+            <!-- 歷史倍數列表 -->
+            <div id="multipliers-list" class="flex flex-col space-y-1 items-end opacity-90"></div>
+          </div>
+
+          <!-- 遊戲渲染畫布 -->
+          <canvas id="gameCanvas" class="w-full h-full block"></canvas>
+
+          <!-- 洋蔥大轉盤自動轉動 Overlay -->
+          <div id="onion-wheel-overlay" class="absolute inset-0 bg-black/75 backdrop-blur-xs flex flex-col items-center justify-center p-6 z-40 hidden">
+            <div class="bg-slate-900 border border-purple-500/50 rounded-3xl p-5 w-full max-w-[260px] text-center flex flex-col items-center shadow-2xl">
+              <div class="bg-purple-600 text-white text-[10px] font-black px-2.5 py-1 rounded-full mb-3 tracking-widest animate-pulse">
+                🧅 洋蔥幸運轉盤 🧅
+              </div>
+              <p class="text-slate-300 text-[11px] mb-4">系統正在為您自動抽取洋蔥爆發倍數...</p>
+              
+              <!-- 轉盤實體 -->
+              <div class="relative w-40 h-40 my-2 flex items-center justify-center">
+                <!-- 指針 -->
+                <div class="absolute -top-1 w-5 h-6 bg-yellow-400 z-30" style="clip-path: polygon(50% 100%, 0 0, 100% 0);"></div>
+                <!-- 旋轉圓盤 -->
+                <div id="onion-wheel" class="w-full h-full rounded-full border-4 border-purple-400 bg-slate-800 relative overflow-hidden shadow-lg">
+                  <canvas id="wheelCanvas" width="160" height="160" class="w-full h-full rounded-full"></canvas>
+                </div>
+                <!-- 轉盤中心 -->
+                <div class="absolute w-10 h-10 bg-white rounded-full border-4 border-purple-600 z-10 shadow flex items-center justify-center font-black text-slate-800 text-[10px]">
+                  ONION
+                </div>
+              </div>
+
+              <!-- 提示文字 -->
+              <div id="wheel-toast" class="text-xs text-yellow-300 font-bold mt-3 h-4"></div>
+            </div>
+          </div>
+
+          <!-- 底部控制按鈕區 -->
+          <div id="game-controls" class="absolute bottom-5 left-0 w-full px-4 grid grid-cols-12 gap-3.5 z-20">
+            <!-- 「出餐」 (左側黃色) - 初始隱藏，第一層後才顯示 -->
+            <button id="btn-collect" onclick="collectEarnings(event)" class="col-span-5 py-2 bg-gradient-to-b from-yellow-300 to-amber-500 hover:from-yellow-200 hover:to-amber-400 text-slate-950 font-black rounded-xl shadow-lg active:scale-95 transition-all flex flex-col justify-center items-center h-14 border border-yellow-200 hidden">
+              <span class="text-sm tracking-widest">出餐</span>
+              <span id="collect-earning-val" class="text-xs text-amber-950 font-mono tracking-tighter">$10,000</span>
+            </button>
+            
+            <!-- 「加料」 (右側綠色) -->
+            <button id="btn-drop" onclick="handleDropButton(event)" class="col-span-12 py-3 bg-gradient-to-b from-emerald-400 to-green-600 hover:from-emerald-300 hover:to-green-500 text-white font-black text-lg rounded-xl shadow-lg active:scale-95 transition-all flex justify-center items-center h-14 border border-emerald-300">
+              <span>加料</span>
+            </button>
+          </div>
+
+          <!-- 商店廣告強彈彈窗 -->
+          <div id="store-ad-modal" class="absolute inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-5 z-50 hidden">
+            <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-[280px] p-5 relative flex flex-col items-center text-center shadow-2xl">
+              <!-- 關閉按鈕 -->
+              <button id="close-store-ad" onclick="dismissStoreAd(event)" class="absolute top-3 right-3 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-6 h-6 rounded-full flex items-center justify-center text-xs transition">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+
+              <!-- 漢堡圖標 -->
+              <div class="w-16 h-16 bg-gradient-to-tr from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-3xl shadow-lg mb-3 animate-bounce">
+                🍔
+              </div>
+
+              <h4 class="text-white font-black text-md">超級漢堡大亨：疊高高</h4>
+              <p class="text-slate-400 text-[10px] mb-2">Burger Tycoon: Stack High</p>
+
+              <!-- 評分星等 -->
+              <div class="flex items-center space-x-1 text-yellow-400 text-xs mb-4">
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star-half-stroke"></i>
+                <span class="text-slate-300 text-[10px] ml-1">(4.8★) 5,000萬+下載</span>
+              </div>
+
+              <p class="text-slate-300 text-xs mb-5 leading-relaxed">
+                極致絲滑的解壓疊漢堡！現在免費下載，即可獲得限量「黃金骰子配方」！
+              </p>
+
+              <!-- 下載按鈕 -->
+              <a href="https://play.google.com" target="_blank" onclick="dismissStoreAd(event)" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 text-slate-950 font-black text-sm rounded-xl transition active:scale-95 shadow-md block text-center">
+                立即安裝遊玩 🚀
+              </a>
+            </div>
+          </div>
+
+          <!-- 結算萬用視窗 (Msg Modal) -->
+          <div id="msg-modal" class="absolute inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-6 z-50 hidden">
+            <div class="bg-slate-900 border border-slate-700 rounded-3xl p-5 w-full max-w-[280px] text-center flex flex-col items-center shadow-2xl">
+              <div id="modal-icon" class="text-4xl mb-3">💥</div>
+              <h3 id="modal-title" class="text-md font-black text-white mb-2">漢堡倒塌啦！</h3>
+              <p id="modal-desc" class="text-[11px] text-slate-400 mb-4 leading-relaxed">
+                可惜了！您的漢堡偏移過重倒塌。
+              </p>
+
+              <!-- 結算數據 -->
+              <div class="bg-slate-800/80 rounded-xl p-3 w-full mb-4 space-y-1.5 text-left border border-slate-700 text-xs">
+                <div class="flex justify-between text-slate-400">
+                  <span>起初投注：</span>
+                  <span class="text-slate-200 font-bold">$10,000</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                  <span>堆疊層數：</span>
+                  <span id="modal-stat-layers" class="text-emerald-400 font-bold">5 層</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                  <span>累積倍數：</span>
+                  <span id="modal-stat-mult" class="text-yellow-400 font-bold">1.5x</span>
+                </div>
+                <div class="h-[1px] bg-slate-700 my-1.5"></div>
+                <div class="flex justify-between text-sm text-slate-300">
+                  <span class="font-bold">獲得收益：</span>
+                  <span id="modal-stat-earnings" class="text-amber-400 font-extrabold text-sm">$15,000</span>
+                </div>
+              </div>
+
+              <button onclick="startGame()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-sm rounded-xl hover:brightness-110 transition active:scale-95">
+                再玩一次！ 🔄
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- 右側：開發者主控台 -->
+    <div id="developer-sidebar" class="lg:col-span-5 xl:col-span-4 flex flex-col bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl max-h-[720px] lg:max-h-none">
+      
+      <div class="bg-slate-950 p-4 border-b border-slate-800 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-code text-amber-400"></i>
+          <span class="font-bold text-white text-sm">開發者規格與邏輯追蹤器</span>
+        </div>
+        <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono">v2.0</span>
+      </div>
+
+      <!-- 頁籤切換 -->
+      <div class="flex border-b border-slate-800 bg-slate-900/60 text-xs">
+        <button id="tab-flow-btn" onclick="switchTab('flow')" class="flex-1 py-2.5 font-bold border-b-2 border-amber-500 text-amber-400">
+          <i class="fa-solid fa-network-wired mr-1"></i> 廣告策略追蹤
+        </button>
+        <button id="tab-logs-btn" onclick="switchTab('logs')" class="flex-1 py-2.5 font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition">
+          <i class="fa-solid fa-terminal mr-1"></i> 即時系統日誌
+        </button>
+      </div>
+
+      <!-- 頁籤內容面板 -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        
+        <!-- 策略流面板 -->
+        <div id="tab-flow" class="space-y-3.5">
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            <i class="fa-regular fa-lightbulb text-yellow-400 mr-1"></i> 系統正在監控並高亮顯示廣告投放時的三個特定時間阻斷流：
+          </p>
+          
+          <div class="space-y-2 text-xs">
+            <div id="flow-under-15" class="flow-node bg-slate-800/40 p-2.5 rounded-lg flex flex-col space-y-1">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-slate-200">失敗重試 (每次倒塌)</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300">可以關閉</span>
+              </div>
+              <p class="text-[10px] text-slate-400">每次倒塌後，再次點擊「加料」時將跳出商店廣告一次，關閉後可繼續遊玩。</p>
+            </div>
+
+            <div id="flow-over-20" class="flow-node bg-slate-800/40 p-2.5 rounded-lg flex flex-col space-y-1">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-slate-200">時間 &gt; 12秒 (出餐限制)</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300">報獎後彈窗</span>
+              </div>
+              <p class="text-[10px] text-slate-400">當開啟時間超過 12 秒，玩家點擊「出餐」時會先顯示報獎框，再跳出商店廣告。</p>
+            </div>
+
+            <div id="flow-over-30" class="flow-node bg-slate-800/40 p-2.5 rounded-lg flex flex-col space-y-1">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-red-300">時間 &gt; 25秒 (全局攔截)</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-red-900/40 text-red-200 font-bold">需點擊觸發</span>
+              </div>
+              <p class="text-[10px] text-slate-400">超過 25 秒後，需點擊畫面才會彈出廣告。關閉後再次點擊畫面會再次觸發。</p>
+            </div>
+
+            <div id="flow-safe-logic" class="flow-node bg-slate-800/40 p-2.5 rounded-lg flex flex-col space-y-1">
+              <span class="font-bold text-emerald-400">漢堡安全期（僅首次）</span>
+              <p class="text-[10px] text-slate-400">前 4 層擁有完美保護，僅在第一次開啟廣告頁時適用。之後的遊戲從第 1 層起即有可能倒塌。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 系統日誌面板 -->
+        <div id="tab-logs" class="hidden h-full flex flex-col space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] text-slate-400 font-mono">Real-time console logs:</span>
+            <button onclick="clearLogs()" class="text-slate-500 hover:text-slate-300 text-[10px] underline">Clear</button>
+          </div>
+          <div id="logs-container" class="bg-slate-950 p-3 rounded-lg border border-slate-800 h-[240px] overflow-y-auto font-mono text-[10px] text-emerald-400 space-y-1">
+            <div class="text-slate-500">// 系統日誌記錄中...</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 開發者快速測試外掛區 -->
+      <div class="p-4 bg-slate-950 border-t border-slate-800 space-y-2">
+        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">⚡ QA 測試捷徑與快速設定</div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <button onclick="adjustCheatTimer(11)" class="bg-indigo-900/60 hover:bg-indigo-800 border border-indigo-700/50 text-indigo-200 py-1.5 rounded-lg font-bold">
+            ⏱️ 設定為 11 秒
+          </button>
+          <button onclick="adjustCheatTimer(16)" class="bg-indigo-900/60 hover:bg-indigo-800 border border-indigo-700/50 text-indigo-200 py-1.5 rounded-lg font-bold">
+            ⏱️ 設定為 16 秒
+          </button>
+          <button onclick="adjustCheatTimer(26)" class="bg-pink-900/60 hover:bg-pink-800 border border-pink-700/50 text-pink-200 py-1.5 rounded-lg font-bold">
+            ⏱️ 設定為 26 秒
+          </button>
+          <button onclick="triggerCheatOnion()" class="bg-purple-900/60 hover:bg-purple-800 border border-purple-700/50 text-purple-200 py-1.5 rounded-lg font-bold">
+            🧅 下一層必出洋蔥
+          </button>
+          <button onclick="cheatAutoStack()" class="col-span-2 bg-emerald-900/60 hover:bg-emerald-800 border border-emerald-700/50 text-emerald-200 py-1.5 rounded-lg font-bold text-center">
+            🏗️ 快速自動追加 4 層 (安全期測試)
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    // --- 全域變數定義 ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let gameParams = {
+      safeLayers: 4,
+      maxOffsetRatio: 0.65,
+      fallFactor: 0.08,
+      baseSpeed: 2.2  // 減慢上方水平移動速度
+    };
+
+    let isMuted = false;
+    let gameState = 'PLAYING'; 
+    let balance = 10000;
+    let totalMultiplier = 1.00;
+    
+    let placedLayers = [];  
+    let activeLayer = null; 
+    let isTransitioning = false; 
+
+    // 相機高度與平滑緩動
+    let cameraY = 0;
+    let currentCameraY = 0;
+
+    let devicePixelRatio = window.devicePixelRatio || 1;
+    let width = 360;
+    let height = 512; 
+
+    let particles = [];
+    let recentMultipliers = []; 
+
+    // 廣告時間追蹤
+    let playSeconds = 0.0;
+    let timerInterval = null;
+
+    let pendingStoreAd = false; 
+    let postCrashIntentDrop = false; 
+
+    // 25秒死鎖狀態：需要點擊才觸發廣告
+    let adDeadlockReady = false;
+
+    // 安全期只在第一次開啟此廣告頁時適用
+    let isFirstGame = true;
+
+    // 餡料不包含起司
+    const INGREDIENTS = [
+      { name: '厚牛排', color: '#7c2d12', emoji: '🥩', minM: 1.3, maxM: 2.2 },
+      { name: '生菜', color: '#10b981', emoji: '🥬', minM: 0.9, maxM: 1.4 },
+      { name: '番茄', color: '#ef4444', emoji: '🍅', minM: 1.0, maxM: 1.5 },
+      { name: '培根', color: '#dc2626', emoji: '🥓', minM: 1.2, maxM: 1.8 }
+    ];
+
+    let forceNextOnion = false;
+
+    // --- 音效延遲懶載入優化 ---
+    let audioCtx = null;
+    function initAudioContext() {
+      if (!audioCtx) {
+        try {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+          console.warn("瀏覽器不支援 Web Audio API 或受到 sandbox 限制", e);
+        }
+      }
+    }
+
+    // --- 健壯版圓角矩形相容性修正 ---
+    function drawRoundedRect(gCtx, x, y, w, h, r) {
+      if (typeof gCtx.roundRect === 'function') {
+        gCtx.beginPath();
+        gCtx.roundRect(x, y, w, h, [r]);
+        gCtx.fill();
+        return;
+      }
+      gCtx.beginPath();
+      gCtx.moveTo(x + r, y);
+      gCtx.lineTo(x + w - r, y);
+      gCtx.quadraticCurveTo(x + w, y, x + w, y + r);
+      gCtx.lineTo(x + w, y + h - r);
+      gCtx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      gCtx.lineTo(x + r, y + h);
+      gCtx.quadraticCurveTo(x, y + h, x, y + h - r);
+      gCtx.lineTo(x, y + r);
+      gCtx.quadraticCurveTo(x, y, x + r, y);
+      gCtx.closePath();
+      gCtx.fill();
+    }
+
+    window.onload = function() {
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      startSystemTimer();
+      startGame(); 
+      requestAnimationFrame(gameLoop);
+    };
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      width = rect.width || 360;
+      height = rect.height || 512;
+      canvas.width = width * devicePixelRatio;
+      canvas.height = height * devicePixelRatio;
+      ctx.resetTransform();
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+    }
+
+    function startSystemTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        playSeconds += 0.1;
+        document.getElementById('cheat-timer').innerText = playSeconds.toFixed(1) + " 秒";
+        
+        // 超過 25 秒：設定死鎖就緒狀態（但不自動彈出，需點擊觸發）
+        if (playSeconds >= 25.0 && !adDeadlockReady && !pendingStoreAd && gameState !== 'COLLECTED' && gameState !== 'GAMEOVER') {
+          adDeadlockReady = true;
+          logSystem("[時間鎖] 已超過 25 秒限制！下次點擊畫面時將觸發全局廣告攔截。");
+        }
+
+        updateFlowHighlights();
+      }, 100);
+    }
+
+    function resetCheatTimer() {
+      playSeconds = 0.0;
+      pendingStoreAd = false;
+      adDeadlockReady = false;
+      postCrashIntentDrop = false;
+      isFirstGame = true; // 回到第一次開啟廣告頁的狀態
+      document.getElementById('cheat-timer').innerText = "0.0 秒";
+      dismissStoreAd(null);
+      document.getElementById('msg-modal').classList.add('hidden');
+      document.getElementById('onion-wheel-overlay').classList.add('hidden');
+      logSystem("[作弊] 已重置整個廣告流程，回到第一次開啟廣告頁的狀態。");
+      startGame();
+    }
+
+    function adjustCheatTimer(sec) {
+      playSeconds = parseFloat(sec);
+      document.getElementById('cheat-timer').innerText = playSeconds.toFixed(1) + " 秒";
+      logSystem(`[作弊] 秒數手動設置為 ${sec} 秒。`);
+      if (playSeconds >= 25.0) {
+        adDeadlockReady = true;
+        logSystem("[時間鎖] 死鎖已就緒，等待玩家點擊觸發廣告。");
+      }
+    }
+
+    function playBeep(freq, duration, type = 'sine', vol = 0.1) {
+      if (isMuted) return;
+      initAudioContext();
+      if (!audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playSound(effect) {
+      if (isMuted) return;
+      initAudioContext();
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      if (effect === 'click') playBeep(520, 0.07, 'sine', 0.12);
+      if (effect === 'perfect') {
+        playBeep(880, 0.1, 'sine', 0.08);
+        setTimeout(() => playBeep(1100, 0.15, 'sine', 0.08), 80);
+      }
+      if (effect === 'onion-spin') {
+        let cnt = 0;
+        let int = setInterval(() => {
+          playBeep(550 + Math.random() * 350, 0.04, 'square', 0.03);
+          cnt++;
+          if (cnt > 8) clearInterval(int);
+        }, 60);
+      }
+      if (effect === 'crash') {
+        playBeep(140, 0.5, 'sawtooth', 0.2);
+        playBeep(90, 0.7, 'triangle', 0.18);
+      }
+      if (effect === 'cash') {
+        playBeep(987, 0.08, 'sine', 0.1);
+        setTimeout(() => playBeep(1318, 0.1, 'sine', 0.1), 80);
+        setTimeout(() => playBeep(1975, 0.3, 'sine', 0.15), 160);
+      }
+    }
+
+    function toggleMute() {
+      isMuted = !isMuted;
+      const btn = document.getElementById('btn-sound');
+      if (isMuted) {
+        btn.innerHTML = `<i class="fa-solid fa-volume-xmark text-slate-500 mr-1"></i> 音效關閉`;
+      } else {
+        btn.innerHTML = `<i class="fa-solid fa-volume-high text-amber-400 mr-1"></i> 音效開啟`;
+        playBeep(440, 0.1);
+      }
+    }
+
+    function startGame() {
+      gameState = 'PLAYING';
+      totalMultiplier = 1.00;
+      placedLayers = [];
+      recentMultipliers = [];
+      cameraY = 0;
+      currentCameraY = 0;
+      isTransitioning = false;
+      forceNextOnion = false;
+      // 不重置 postCrashIntentDrop，讓失敗重試廣告機制跨局持續
+
+      document.getElementById('msg-modal').classList.add('hidden');
+      document.getElementById('multipliers-list').innerHTML = '';
+
+      placedLayers.push({
+        x: (width / 2) - 70, 
+        width: 140,
+        y: height - 120,
+        type: 'bun_bottom',
+        color: '#ca7a3a',
+        emoji: '🍞',
+        multiplier: 1.0
+      });
+
+      updateUI(); 
+      logSystem("[遊戲啟動] 直接回到第一層 (底層麵包底 🍞)。");
+      
+      setTimeout(() => {
+        spawnNextLayer();
+      }, 400);
+    }
+
+    function spawnNextLayer() {
+      if (gameState !== 'PLAYING') return;
+
+      const topY = placedLayers[placedLayers.length - 1].y;
+      const layerHeight = 32;
+      const targetY = topY - layerHeight;
+
+      if (placedLayers.length > 3) {
+        cameraY = (placedLayers.length - 3) * layerHeight;
+      }
+
+      let type = 'normal';
+      let ing = INGREDIENTS[Math.floor(Math.random() * INGREDIENTS.length)];
+
+      if (forceNextOnion) {
+        type = 'onion';
+        forceNextOnion = false;
+      } else {
+        if (placedLayers.length >= 3 && Math.random() < 0.15) {
+          type = 'onion';
+        }
+      }
+
+      let color = ing.color;
+      let emoji = ing.emoji;
+      let name = ing.name;
+
+      if (type === 'onion') {
+        color = '#c084fc';
+        emoji = '🧅';
+        name = '幸運洋蔥';
+      }
+
+      let prevWidth = placedLayers[placedLayers.length - 1].width;
+      let nextWidth = Math.max(85, prevWidth - (placedLayers.length * 0.8));
+
+      // 新一層餡料在畫面最上方左右滑動
+      activeLayer = {
+        x: 20,
+        y: 30 - currentCameraY, // 補償相機偏移，確保在畫面最上方滑動（世界座標）
+        targetY: targetY, // 點擊加料後掉落到的目標位置
+        width: nextWidth,
+        speed: gameParams.baseSpeed + (placedLayers.length * 0.12), // 減慢速度遞增
+        direction: 1,
+        type: type,
+        color: color,
+        emoji: emoji,
+        name: name,
+        minM: ing.minM,
+        maxM: ing.maxM,
+        dropping: false, // 是否正在掉落
+        dropSpeed: 0
+      };
+
+      isTransitioning = false;
+      updateUI(); 
+    }
+
+    function handleDropButton(e) {
+      if (e) e.stopPropagation();
+      initAudioContext();
+      
+      // 超過25秒死鎖攔截
+      if (adDeadlockReady) {
+        logSystem("[時間鎖] 25秒死鎖生效，觸發廣告彈窗。");
+        triggerStoreAd();
+        return;
+      }
+
+      // 每次失敗重試，點擊加料按鈕時會彈跳一次廣告頁
+      if (postCrashIntentDrop) {
+        logSystem("[策略] 失敗重試階段，點擊加料觸發廣告彈窗。");
+        postCrashIntentDrop = false; 
+        triggerStoreAd();
+        return;
+      }
+
+      if (isTransitioning || gameState !== 'PLAYING' || !activeLayer) return;
+      
+      // 如果餡料正在掉落中，忽略按鈕
+      if (activeLayer.dropping) return;
+      
+      isTransitioning = true;
+      playSound('click');
+
+      // 開始掉落動畫：將 y 從螢幕頂部轉換到世界座標
+      activeLayer.dropping = true;
+      activeLayer.y = 30 - currentCameraY; // 從螢幕頂部位置轉為世界座標
+      activeLayer.dropSpeed = 0;
+    }
+
+    function landSuccess() {
+      playSound('perfect');
+      spawnLandingParticles(activeLayer.x + activeLayer.width/2, activeLayer.targetY + 12, activeLayer.color);
+
+      let m = 1.0;
+      if (activeLayer.type === 'normal') {
+        if (Math.random() < 0.15) {
+          m = parseFloat((0.4 + Math.random() * 0.5).toFixed(2));
+        } else {
+          m = parseFloat((1.1 + Math.random() * 1.4).toFixed(2));
+        }
+      }
+
+      placedLayers.push({
+        x: activeLayer.x,
+        width: activeLayer.width,
+        y: activeLayer.targetY,
+        type: activeLayer.type,
+        color: activeLayer.color,
+        emoji: activeLayer.emoji,
+        multiplier: m
+      });
+
+      if (activeLayer.type === 'onion') {
+        recentMultipliers.push({ emoji: '🧅', text: 'Onion' });
+        updateUI();
+        setTimeout(() => {
+          autoTriggerOnionSpin();
+        }, 400);
+        return;
+      }
+
+      totalMultiplier *= m;
+      recentMultipliers.push({ emoji: activeLayer.emoji, text: `x${m.toFixed(2)}` });
+      updateUI();
+
+      setTimeout(() => {
+        spawnNextLayer();
+      }, 600);
+    }
+
+    function autoTriggerOnionSpin() {
+      gameState = 'ONION_WHEEL';
+      document.getElementById('onion-wheel-overlay').classList.remove('hidden');
+      document.getElementById('wheel-toast').innerText = "開始自動旋轉...";
+      playSound('onion-spin');
+
+      const odds = [1.5, 2.5, 3.5, 5.0, 8.0, 15.0];
+      const targetIdx = Math.floor(Math.random() * odds.length);
+      const chosenMult = odds[targetIdx];
+
+      // 真正旋轉轉盤：先加上 spinning class 讓轉盤持續轉動
+      const wheel = document.getElementById('onion-wheel');
+      wheel.classList.add('wheel-spinning');
+
+      // 縮短旋轉時間（原本3秒，現在1.5秒後停止）
+      const spinDuration = 1500;
+
+      setTimeout(() => {
+        // 停止連續旋轉
+        wheel.classList.remove('wheel-spinning');
+        
+        // 計算最終停止角度
+        const stopDegrees = 270 - (targetIdx * (360 / odds.length)) - (360 / odds.length / 2);
+        const totalSpin = 720 + stopDegrees;
+        wheel.style.transition = 'transform 0.8s cubic-bezier(0.1, 0.8, 0.1, 1)';
+        wheel.style.transform = `rotate(${totalSpin}deg)`;
+
+        setTimeout(() => {
+          playSound('perfect');
+          document.getElementById('wheel-toast').innerText = `🎁 恭喜獲得 ${chosenMult}x倍率！`;
+          
+          totalMultiplier *= chosenMult;
+
+          if (recentMultipliers.length > 0) {
+            recentMultipliers[recentMultipliers.length - 1].text = `x${chosenMult.toFixed(1)}`;
+          }
+
+          spawnLandingParticles(180, 240, '#a855f7', 25);
+
+          setTimeout(() => {
+            document.getElementById('onion-wheel-overlay').classList.add('hidden');
+            wheel.style.transition = '';
+            wheel.style.transform = 'rotate(0deg)';
+            gameState = 'PLAYING';
+            updateUI();
+            spawnNextLayer();
+          }, 800);
+
+        }, 800);
+      }, spinDuration);
+    }
+
+    function gameLoop() {
+      updateAnimation();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function updateAnimation() {
+      currentCameraY += (cameraY - currentCameraY) * 0.1;
+
+      if (activeLayer && gameState === 'PLAYING') {
+        if (activeLayer.dropping) {
+          // 掉落動畫：加速掉落到目標位置（在世界座標中）
+          activeLayer.dropSpeed += 1.2;
+          activeLayer.y += activeLayer.dropSpeed;
+          
+          if (activeLayer.y >= activeLayer.targetY) {
+            activeLayer.y = activeLayer.targetY;
+            activeLayer.dropping = false;
+            
+            // 落地後進行偏移判定
+            const prev = placedLayers[placedLayers.length - 1];
+            const centerActive = activeLayer.x + (activeLayer.width / 2);
+            const centerPrev = prev.x + (prev.width / 2);
+            const offsetDistance = Math.abs(centerActive - centerPrev);
+            const offsetRatio = offsetDistance / prev.width;
+
+            logSystem(`[加料放置] 偏移率: ${offsetRatio.toFixed(3)} (臨界點: 0.65)`);
+
+            if (offsetRatio > gameParams.maxOffsetRatio) {
+              // 安全期只在第一次開啟此廣告頁時適用
+              if (!isFirstGame || placedLayers.length >= 5) {
+                triggerCrash("漢堡嚴重歪斜倒塌 💥");
+                return;
+              } else {
+                logSystem("[新手保護] 歪斜嚴重但在安全期內（首次遊戲前4層），自動修正並著陸！");
+              }
+            }
+
+            // 雪崩判定：安全期只在第一次遊戲時有效
+            if (!isFirstGame || placedLayers.length >= 5) {
+              const difficultyFactor = (placedLayers.length - (isFirstGame ? 4 : 0)) * gameParams.fallFactor + (offsetRatio * 0.35);
+              if (difficultyFactor > 0) {
+                const roll = Math.random();
+                logSystem(`[不平衡機率] ${(difficultyFactor*100).toFixed(0)}% | 隨機數: ${(roll*100).toFixed(0)}%`);
+                if (roll < difficultyFactor) {
+                  triggerCrash("高度傾斜導致漢堡崩塌 💥");
+                  return;
+                }
+              }
+            }
+
+            landSuccess();
+          }
+        } else {
+          // 在畫面最上方左右滑動
+          activeLayer.x += activeLayer.speed * activeLayer.direction;
+          if (activeLayer.x + activeLayer.width >= width - 10) {
+            activeLayer.x = width - 10 - activeLayer.width;
+            activeLayer.direction = -1;
+          } else if (activeLayer.x <= 10) {
+            activeLayer.x = 10;
+            activeLayer.direction = 1;
+          }
+        }
+      }
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.12;
+        p.life -= p.decay;
+        if (p.life <= 0) particles.splice(i, 1);
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      ctx.save();
+      ctx.translate(0, currentCameraY);
+
+      ctx.fillStyle = '#1e1c31';
+      ctx.fillRect(0, height - 70, width, 150);
+
+      // 繪製固定層
+      for (let i = 0; i < placedLayers.length; i++) {
+        const layer = placedLayers[i];
+        drawLayerItem(layer);
+      }
+
+      // 繪製掉落中的配料（在相機座標內）
+      if (activeLayer && gameState === 'PLAYING' && activeLayer.dropping) {
+        drawLayerItem(activeLayer, true);
+      }
+
+      // 繪製粒子
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1.0;
+      ctx.restore();
+
+      // 繪製在畫面頂部滑動的配料（不受相機影響，使用螢幕座標）
+      if (activeLayer && gameState === 'PLAYING' && !activeLayer.dropping) {
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetY = 3;
+        ctx.fillStyle = activeLayer.color;
+        drawRoundedRect(ctx, activeLayer.x, 30, activeLayer.width, 24, 8);
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(activeLayer.emoji, activeLayer.x + activeLayer.width/2, 30 + 12);
+        ctx.restore();
+
+        // 畫虛線導引（從螢幕頂部到相機座標內的目標位置）
+        ctx.save();
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(activeLayer.x + activeLayer.width/2, 54);
+        ctx.lineTo(activeLayer.x + activeLayer.width/2, activeLayer.targetY + currentCameraY);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function drawLayerItem(layer, isActive = false) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.3)';
+      ctx.shadowBlur = 6;
+      ctx.shadowOffsetY = 3;
+
+      ctx.fillStyle = layer.color;
+      drawRoundedRect(ctx, layer.x, layer.y, layer.width, 24, 8);
+
+      ctx.font = '16px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(layer.emoji, layer.x + layer.width/2, layer.y + 12);
+
+      ctx.restore();
+    }
+
+    function collectEarnings(e) {
+      if (e) e.stopPropagation();
+
+      if (adDeadlockReady) {
+        logSystem("[時間鎖] 25秒死鎖生效，觸發廣告彈窗。");
+        triggerStoreAd();
+        return;
+      }
+
+      if (gameState !== 'PLAYING' || isTransitioning) return;
+      isTransitioning = true;
+      gameState = 'COLLECTED';
+
+      logSystem("[出餐] 收工出餐！封蓋頂層麵包 🍞。");
+
+      // 出餐成功也結束安全期
+      isFirstGame = false;
+
+      const last = placedLayers[placedLayers.length - 1];
+      const layerHeight = 32;
+
+      placedLayers.push({
+        x: last.x,
+        width: last.width,
+        y: last.y - layerHeight,
+        type: 'bun_top',
+        color: '#ca7a3a',
+        emoji: '🍞',
+        multiplier: 1.0
+      });
+
+      setTimeout(() => {
+        const flash = document.getElementById('shutter-flash');
+        flash.classList.add('flash');
+        playSound('cash');
+        setTimeout(() => {
+          flash.classList.remove('flash');
+        }, 150);
+
+        setTimeout(() => {
+          showResults(false);
+          
+          // 超過 12 秒出餐限制：先顯示報獎框，再跳出廣告
+          if (playSeconds > 12.0) {
+            logSystem("[出餐阻截] 遊玩大於 12 秒，報獎後彈出廣告彈窗。");
+            setTimeout(() => {
+              triggerStoreAd();
+            }, 1500);
+          }
+        }, 500);
+      }, 300);
+    }
+
+    function triggerCrash(reason) {
+      playSound('crash');
+      gameState = 'GAMEOVER';
+      logSystem(`[倒塌] ${reason}`);
+
+      // 第一次遊戲結束後，安全期不再適用
+      isFirstGame = false;
+
+      spawnLandingParticles(width / 2, height / 2, '#ef4444', 45);
+
+      // 每次失敗都註冊重試廣告
+      postCrashIntentDrop = true;
+      logSystem("[策略註冊] 下次點擊「加料」時將彈出商店廣告。");
+
+      setTimeout(() => {
+        showResults(true);
+      }, 800);
+    }
+
+    function showResults(isCrash) {
+      const modal = document.getElementById('msg-modal');
+      const icon = document.getElementById('modal-icon');
+      const title = document.getElementById('modal-title');
+      const desc = document.getElementById('modal-desc');
+
+      const mLayers = document.getElementById('modal-stat-layers');
+      const mMult = document.getElementById('modal-stat-mult');
+      const mEarnings = document.getElementById('modal-stat-earnings');
+
+      modal.classList.remove('hidden');
+
+      if (isCrash) {
+        icon.innerText = "💥";
+        title.innerText = "漢堡倒塌了！";
+        title.className = "text-md font-black text-red-500 mb-2";
+        desc.innerText = "好可惜！漢堡偏重不穩。請再接再厲！";
+
+        mLayers.innerText = `${placedLayers.length - 1} 層`;
+        mMult.innerText = "0.00x";
+        mEarnings.innerText = "$0";
+        mEarnings.className = "text-red-500 font-extrabold text-sm";
+      } else {
+        icon.innerText = "🏆";
+        title.innerText = "順利出餐！";
+        title.className = "text-md font-black text-emerald-500 mb-2";
+        desc.innerText = "恭喜完成訂單！美味的配料成功賺取了對應收益！";
+
+        const finalEarn = Math.round(balance * totalMultiplier);
+        mLayers.innerText = `${placedLayers.length - 2} 層`; 
+        mMult.innerText = `${totalMultiplier.toFixed(2)}x`;
+        mEarnings.innerText = `$${finalEarn.toLocaleString()}`;
+        mEarnings.className = "text-emerald-400 font-extrabold text-sm";
+      }
+    }
+
+    function updateUI() {
+      const displayMult = totalMultiplier.toFixed(2);
+      const estEarnings = Math.round(balance * totalMultiplier);
+
+      document.getElementById('hud-multiplier').innerText = `${displayMult}x`;
+
+      const listDiv = document.getElementById('multipliers-list');
+      listDiv.innerHTML = '';
+      const reversedList = [...recentMultipliers].reverse().slice(0, 5);
+      reversedList.forEach(item => {
+        const pill = document.createElement('div');
+        pill.className = 'bg-sky-400/80 text-slate-950 font-bold px-2 py-0.5 rounded-full text-[10px] shadow-sm flex items-center space-x-1 border border-white/20 min-w-[50px] justify-center';
+        pill.innerHTML = `<span>${item.emoji}</span><span>${item.text}</span>`;
+        listDiv.appendChild(pill);
+      });
+
+      document.getElementById('collect-earning-val').innerText = `$${estEarnings.toLocaleString()}`;
+
+      const btnDrop = document.getElementById('btn-drop');
+      const btnCollect = document.getElementById('btn-collect');
+
+      if (placedLayers.length <= 1) {
+        btnCollect.classList.add('hidden');
+        btnDrop.className = "col-span-12 py-3 bg-gradient-to-b from-emerald-400 to-green-600 hover:from-emerald-300 hover:to-green-500 text-white font-black text-lg rounded-xl shadow-lg active:scale-95 transition-all h-14 border border-emerald-300";
+      } else {
+        btnCollect.classList.remove('hidden');
+        btnDrop.className = "col-span-7 py-3 bg-gradient-to-b from-emerald-400 to-green-600 hover:from-emerald-300 hover:to-green-500 text-white font-black text-lg rounded-xl shadow-lg active:scale-95 transition-all h-14 border border-emerald-300";
+      }
+    }
+
+    function triggerStoreAd() {
+      pendingStoreAd = true;
+      document.getElementById('store-ad-modal').classList.remove('hidden');
+    }
+
+    function dismissStoreAd(e) {
+      if (e) e.stopPropagation();
+      document.getElementById('store-ad-modal').classList.add('hidden');
+      pendingStoreAd = false;
+      
+      if (adDeadlockReady) {
+        logSystem("[時間鎖] 廣告已關閉。再次點擊畫面仍會觸發廣告彈窗。");
+      }
+    }
+
+    function handlePhoneClick(e) {
+      initAudioContext();
+      // 25秒死鎖：關閉廣告後點擊畫面會再次觸發
+      if (adDeadlockReady) {
+        const isAdClick = document.getElementById('store-ad-modal').contains(e.target);
+        if (!isAdClick) {
+          logSystem("[強制召回] 25秒死鎖生效，點擊畫面召回下載彈窗。");
+          triggerStoreAd();
+        }
+      }
+    }
+
+    function spawnLandingParticles(x, y, color, count = 12) {
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: x,
+          y: y,
+          vx: (Math.random() - 0.5) * 5,
+          vy: (Math.random() - 0.5) * 3 - 2,
+          color: color,
+          life: 1.0,
+          decay: 0.03 + Math.random() * 0.03,
+          size: 2 + Math.random() * 4
+        });
+      }
+    }
+
+    function triggerCheatOnion() {
+      forceNextOnion = true;
+      logSystem("[作弊] 已鎖定下一層強制為幸運洋蔥 🧅");
+    }
+
+    function cheatAutoStack() {
+      if (gameState !== 'PLAYING') return;
+      logSystem("[作弊] 自動蓋上 4 層，快速推進至極限測試狀態。");
+      let count = 0;
+      function nextDrop() {
+        if (count >= 4) return;
+        const prev = placedLayers[placedLayers.length - 1];
+        const ing = INGREDIENTS[count % INGREDIENTS.length];
+        
+        placedLayers.push({
+          x: prev.x,
+          width: prev.width,
+          y: prev.y - 32,
+          type: 'normal',
+          color: ing.color,
+          emoji: ing.emoji,
+          multiplier: 1.25
+        });
+
+        totalMultiplier *= 1.25;
+        recentMultipliers.push({ emoji: ing.emoji, text: 'x1.25' });
+        spawnLandingParticles(prev.x + prev.width/2, prev.y - 32, ing.color, 8);
+        
+        if (placedLayers.length > 3) {
+          cameraY = (placedLayers.length - 3) * 32;
+        }
+
+        count++;
+        updateUI();
+        setTimeout(nextDrop, 180);
+      }
+      nextDrop();
+    }
+
+    function logSystem(msg) {
+      const logs = document.getElementById('logs-container');
+      const time = new Date().toLocaleTimeString('zh-TW', { hour12: false });
+      const line = document.createElement('div');
+      line.className = 'border-b border-slate-900 pb-0.5';
+      line.innerHTML = `<span class="text-slate-500">[${time}]</span> ${msg}`;
+      logs.appendChild(line);
+      logs.scrollTop = logs.scrollHeight;
+    }
+
+    function clearLogs() {
+      document.getElementById('logs-container').innerHTML = '';
+    }
+
+    function switchTab(name) {
+      document.getElementById('tab-flow').classList.add('hidden');
+      document.getElementById('tab-logs').classList.add('hidden');
+      document.getElementById('tab-flow-btn').className = 'flex-1 py-2.5 font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition';
+      document.getElementById('tab-logs-btn').className = 'flex-1 py-2.5 font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition';
+
+      document.getElementById(`tab-${name}`).classList.remove('hidden');
+      document.getElementById(`tab-${name}-btn`).className = 'flex-1 py-2.5 font-bold border-b-2 border-amber-500 text-amber-400';
+    }
+
+    function updateFlowHighlights() {
+      document.querySelectorAll('.flow-node').forEach(n => n.classList.remove('active', 'active-danger'));
+
+      const nodeUnder15 = document.getElementById('flow-under-15');
+      const nodeOver20 = document.getElementById('flow-over-20');
+      const nodeOver30 = document.getElementById('flow-over-30');
+      const nodeSafe = document.getElementById('flow-safe-logic');
+
+      if (playSeconds >= 25.0) {
+        nodeOver30.classList.add('active-danger');
+      } else if (playSeconds > 12.0) {
+        nodeOver20.classList.add('active');
+      }
+      
+      // 失敗重試標記活躍
+      if (postCrashIntentDrop) {
+        nodeUnder15.classList.add('active');
+      }
+
+      if (isFirstGame && placedLayers.length < 5) {
+        nodeSafe.classList.add('active');
+      }
+    }
+
+    function drawOnionWheelCanvas() {
+      const wCanvas = document.getElementById('wheelCanvas');
+      if (!wCanvas) return;
+      const wCtx = wCanvas.getContext('2d');
+      const cx = wCanvas.width / 2;
+      const cy = wCanvas.height / 2;
+      const r = cx - 8;
+      
+      const odds = [1.5, 2.5, 3.5, 5.0, 8.0, 15.0];
+      const colors = ['#f472b6', '#c084fc', '#818cf8', '#60a5fa', '#34d399', '#fbbf24'];
+      const sliceAngle = (Math.PI * 2) / odds.length;
+
+      for (let i = 0; i < odds.length; i++) {
+        const start = i * sliceAngle;
+        const end = start + sliceAngle;
+        
+        wCtx.fillStyle = colors[i];
+        wCtx.beginPath();
+        wCtx.moveTo(cx, cy);
+        wCtx.arc(cx, cy, r, start, end);
+        wCtx.closePath();
+        wCtx.fill();
+
+        wCtx.strokeStyle = '#ffffff';
+        wCtx.lineWidth = 1;
+        wCtx.stroke();
+
+        wCtx.save();
+        wCtx.translate(cx, cy);
+        wCtx.rotate(start + sliceAngle/2);
+        wCtx.textAlign = 'right';
+        wCtx.fillStyle = '#ffffff';
+        wCtx.font = 'bold 11px Arial';
+        wCtx.fillText(odds[i] + "x", r - 12, 4);
+        wCtx.restore();
+      }
+    }
+    
+    setTimeout(drawOnionWheelCanvas, 100);
+
+  </script>
+</body>
+</html>
