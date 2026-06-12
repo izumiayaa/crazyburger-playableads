@@ -57,14 +57,7 @@
       box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
     }
 
-    /* 旋轉大轉盤動畫 */
-    @keyframes spin-wheel {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    .wheel-spinning {
-      animation: spin-wheel 0.4s linear infinite;
-    }
+
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -137,32 +130,7 @@
           <!-- 遊戲渲染畫布 -->
           <canvas id="gameCanvas" class="w-full h-full block"></canvas>
 
-          <!-- 洋蔥大轉盤自動轉動 Overlay -->
-          <div id="onion-wheel-overlay" class="absolute inset-0 bg-black/75 backdrop-blur-xs flex flex-col items-center justify-center p-6 z-40 hidden">
-            <div class="bg-slate-900 border border-purple-500/50 rounded-3xl p-5 w-full max-w-[260px] text-center flex flex-col items-center shadow-2xl">
-              <div class="bg-purple-600 text-white text-[10px] font-black px-2.5 py-1 rounded-full mb-3 tracking-widest animate-pulse">
-                🧅 洋蔥幸運轉盤 🧅
-              </div>
-              <p class="text-slate-300 text-[11px] mb-4">系統正在為您自動抽取洋蔥爆發倍數...</p>
-              
-              <!-- 轉盤實體 -->
-              <div class="relative w-40 h-40 my-2 flex items-center justify-center">
-                <!-- 指針 -->
-                <div class="absolute -top-1 w-5 h-6 bg-yellow-400 z-30" style="clip-path: polygon(50% 100%, 0 0, 100% 0);"></div>
-                <!-- 旋轉圓盤 -->
-                <div id="onion-wheel" class="w-full h-full rounded-full border-4 border-purple-400 bg-slate-800 relative overflow-hidden shadow-lg">
-                  <canvas id="wheelCanvas" width="160" height="160" class="w-full h-full rounded-full"></canvas>
-                </div>
-                <!-- 轉盤中心 -->
-                <div class="absolute w-10 h-10 bg-white rounded-full border-4 border-purple-600 z-10 shadow flex items-center justify-center font-black text-slate-800 text-[10px]">
-                  ONION
-                </div>
-              </div>
 
-              <!-- 提示文字 -->
-              <div id="wheel-toast" class="text-xs text-yellow-300 font-bold mt-3 h-4"></div>
-            </div>
-          </div>
 
           <!-- 雞蛋加蓋機會提示 Banner -->
           <div id="egg-combo-banner" class="absolute top-16 left-0 w-full flex justify-center z-30 pointer-events-none hidden">
@@ -187,21 +155,46 @@
             </button>
           </div>
 
-          <!-- 商店廣告強彈彈窗 -->
-          <div id="store-ad-modal" class="absolute inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-5 z-50 hidden">
-            <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-[280px] p-5 relative flex flex-col items-center text-center shadow-2xl">
-              <!-- 關閉按鈕 -->
-              <button id="close-store-ad" onclick="dismissStoreAd(event)" class="absolute top-3 right-3 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-6 h-6 rounded-full flex items-center justify-center text-xs transition">
-                <i class="fa-solid fa-xmark"></i>
-              </button>
-
-              <!-- 漢堡圖標 -->
-              <div class="w-16 h-16 bg-gradient-to-tr from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-3xl shadow-lg mb-3 animate-bounce">
+          <!-- CTA 頁面（不可關閉） -->
+          <div id="cta-page" class="absolute inset-0 bg-gradient-to-b from-[#1a0a2e] via-[#2d1b4e] to-[#0f0c29] flex flex-col items-center justify-center p-5 z-[70] hidden">
+            <!-- 遊戲 LOGO + 機台名稱 -->
+            <div class="flex flex-col items-center mb-4">
+              <div class="w-20 h-20 bg-gradient-to-tr from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-4xl shadow-lg border-2 border-amber-300 mb-2">
                 🍔
               </div>
+              <h2 class="text-white font-black text-xl tracking-wide">金好運</h2>
+            </div>
 
-              <h4 class="text-white font-black text-md">超級漢堡大亨：疊高高</h4>
-              <p class="text-slate-400 text-[10px] mb-2">Burger Tycoon: Stack High</p>
+            <!-- 標語文字 -->
+            <p class="text-amber-300 font-black text-lg mb-5 tracking-widest text-center">檯子最多，開獎最瘋</p>
+
+            <!-- 金好運 LOGO -->
+            <div class="flex items-center justify-center mb-5">
+              <div class="bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-900 font-black text-lg px-5 py-2 rounded-full shadow-lg border-2 border-yellow-300 flex items-center space-x-2">
+                <span class="text-2xl">🎰</span>
+                <span>金好運</span>
+              </div>
+            </div>
+
+            <!-- 提示文字 -->
+            <p class="text-slate-200 text-sm mb-6 text-center leading-relaxed font-bold">立即前往，領取你的百萬金幣！</p>
+
+            <!-- 下載按鈕（一鍵暴富） -->
+            <button onclick="showCtaStorePopup()" class="w-full max-w-[240px] py-4 bg-gradient-to-r from-red-500 to-orange-500 hover:brightness-110 text-white font-black text-lg rounded-2xl transition active:scale-95 shadow-xl border-2 border-orange-300 animate-pulse">
+              一鍵暴富 🚀
+            </button>
+          </div>
+
+          <!-- CTA 頁面的商店彈窗 -->
+          <div id="cta-store-popup" class="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-5 z-[80] hidden">
+            <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-[280px] p-5 relative flex flex-col items-center text-center shadow-2xl">
+              <!-- 漢堡圖標 -->
+              <div class="w-16 h-16 bg-gradient-to-tr from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-3xl shadow-lg mb-3 animate-bounce">
+                💰
+              </div>
+
+              <h4 class="text-white font-black text-md">金好運</h4>
+              <p class="text-slate-400 text-[10px] mb-2">ARC PLAY LTD CO.</p>
 
               <!-- 評分星等 -->
               <div class="flex items-center space-x-1 text-yellow-400 text-xs mb-4">
@@ -210,53 +203,28 @@
                 <i class="fa-solid fa-star"></i>
                 <i class="fa-solid fa-star"></i>
                 <i class="fa-solid fa-star-half-stroke"></i>
-                <span class="text-slate-300 text-[10px] ml-1">(4.8★) 5,000萬+下載</span>
+                <span class="text-slate-300 text-[10px] ml-1">(4.2★) 100萬+下載</span>
               </div>
 
               <p class="text-slate-300 text-xs mb-5 leading-relaxed">
-                極致絲滑的解壓疊漢堡！現在免費下載，即可獲得限量「黃金骰子配方」！
+                最火爆的博弈機台遊戲！立即下載領取百萬金幣，天天開獎中大獎！
               </p>
 
               <!-- 下載按鈕 -->
-              <a href="https://play.google.com" target="_blank" onclick="dismissStoreAd(event)" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 text-slate-950 font-black text-sm rounded-xl transition active:scale-95 shadow-md block text-center">
-                立即安裝遊玩 🚀
+              <a href="https://play.google.com" target="_blank" class="w-full py-3 bg-gradient-to-r from-red-500 to-orange-500 hover:brightness-110 text-white font-black text-sm rounded-xl transition active:scale-95 shadow-md block text-center">
+                立即下載 🎰
               </a>
             </div>
           </div>
 
-          <!-- 結算萬用視窗 (Msg Modal) -->
-          <div id="msg-modal" class="absolute inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-6 z-50 hidden">
-            <div class="bg-slate-900 border border-slate-700 rounded-3xl p-5 w-full max-w-[280px] text-center flex flex-col items-center shadow-2xl">
-              <div id="modal-icon" class="text-4xl mb-3">💥</div>
-              <h3 id="modal-title" class="text-md font-black text-white mb-2">漢堡倒塌啦！</h3>
-              <p id="modal-desc" class="text-[11px] text-slate-400 mb-4 leading-relaxed">
-                可惜了！您的漢堡偏移過重倒塌。
-              </p>
-
-              <!-- 結算數據 -->
-              <div class="bg-slate-800/80 rounded-xl p-3 w-full mb-4 space-y-1.5 text-left border border-slate-700 text-xs">
-                <div class="flex justify-between text-slate-400">
-                  <span>起初投注：</span>
-                  <span class="text-slate-200 font-bold">$10,000</span>
-                </div>
-                <div class="flex justify-between text-slate-400">
-                  <span>堆疊層數：</span>
-                  <span id="modal-stat-layers" class="text-emerald-400 font-bold">5 層</span>
-                </div>
-                <div class="flex justify-between text-slate-400">
-                  <span>累積倍數：</span>
-                  <span id="modal-stat-mult" class="text-yellow-400 font-bold">1.5x</span>
-                </div>
-                <div class="h-[1px] bg-slate-700 my-1.5"></div>
-                <div class="flex justify-between text-sm text-slate-300">
-                  <span class="font-bold">獲得收益：</span>
-                  <span id="modal-stat-earnings" class="text-amber-400 font-extrabold text-sm">$15,000</span>
-                </div>
+          <!-- 簡化版報獎框（統一結算視窗） -->
+          <div id="msg-modal" class="absolute inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center p-6 z-[60] hidden">
+            <div class="bg-gradient-to-b from-amber-900/90 to-slate-900 border-2 border-amber-400 rounded-3xl p-6 w-full max-w-[260px] text-center flex flex-col items-center shadow-2xl animate-bounce">
+              <div class="text-2xl font-black text-amber-300 mb-3 tracking-wider">🎉 恭喜獲得</div>
+              <div class="text-5xl mb-3">🍔</div>
+              <div class="text-3xl text-yellow-400 font-black flex items-center space-x-1">
+                <span>💰</span><span id="msg-modal-amount">$$$</span><span>💰</span>
               </div>
-
-              <button onclick="startGame()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-sm rounded-xl hover:brightness-110 transition active:scale-95">
-                再玩一次！ 🔄
-              </button>
             </div>
           </div>
 
@@ -295,33 +263,20 @@
           </p>
           
           <div class="space-y-2 text-xs">
-            <div id="flow-under-15" class="flow-node bg-slate-800/40 p-2.5 rounded-lg flex flex-col space-y-1">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-slate-200">失敗重試 (每次倒塌)</span>
-                <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300">可以關閉</span>
-              </div>
-              <p class="text-[10px] text-slate-400">每次倒塌後，再次點擊「加料」時將跳出商店廣告一次，關閉後可繼續遊玩。</p>
-            </div>
-
             <div id="flow-over-20" class="flow-node bg-slate-800/40 p-2.5 rounded-lg flex flex-col space-y-1">
               <div class="flex justify-between items-center">
-                <span class="font-bold text-slate-200">時間 &gt; 12秒 (出餐限制)</span>
-                <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300">報獎後彈窗</span>
+                <span class="font-bold text-slate-200">階段A：出餐限制</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-900/40 text-amber-200 font-bold">報獎→CTA</span>
               </div>
-              <p class="text-[10px] text-slate-400">當開啟時間超過 12 秒，玩家點擊「出餐」時會先顯示報獎框，再跳出商店廣告。</p>
+              <p class="text-[10px] text-slate-400">點擊「出餐」，先彈報獎框(2秒)，再直接導向 CTA 頁面（不可關閉）。</p>
             </div>
 
             <div id="flow-over-30" class="flow-node bg-slate-800/40 p-2.5 rounded-lg flex flex-col space-y-1">
               <div class="flex justify-between items-center">
-                <span class="font-bold text-red-300">時間 &gt; 25秒 (全局攔截)</span>
-                <span class="text-[9px] px-1.5 py-0.5 rounded bg-red-900/40 text-red-200 font-bold">需點擊觸發</span>
+                <span class="font-bold text-red-300">階段B：全局攔截 (&gt;25秒)</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-red-900/40 text-red-200 font-bold">任意點擊→CTA</span>
               </div>
-              <p class="text-[10px] text-slate-400">超過 25 秒後，需點擊畫面才會彈出廣告。關閉後再次點擊畫面會再次觸發。</p>
-            </div>
-
-            <div id="flow-safe-logic" class="flow-node bg-slate-800/40 p-2.5 rounded-lg flex flex-col space-y-1">
-              <span class="font-bold text-emerald-400">漢堡安全期（僅首次）</span>
-              <p class="text-[10px] text-slate-400">前 4 層擁有完美保護，僅在第一次開啟廣告頁時適用。之後的遊戲從第 1 層起即有可能倒塌。</p>
+              <p class="text-[10px] text-slate-400">超過 25 秒後，任意點擊畫面直接導向 CTA 頁面（不可關閉、不可返回遊戲）。</p>
             </div>
           </div>
         </div>
@@ -352,14 +307,12 @@
           <button onclick="adjustCheatTimer(26)" class="bg-pink-900/60 hover:bg-pink-800 border border-pink-700/50 text-pink-200 py-1.5 rounded-lg font-bold">
             ⏱️ 設定為 26 秒
           </button>
-          <button onclick="triggerCheatOnion()" class="bg-purple-900/60 hover:bg-purple-800 border border-purple-700/50 text-purple-200 py-1.5 rounded-lg font-bold">
-            🧅 下一層必出洋蔥
-          </button>
+
           <button onclick="triggerCheatEgg()" class="bg-yellow-900/60 hover:bg-yellow-800 border border-yellow-700/50 text-yellow-200 py-1.5 rounded-lg font-bold">
             🥚 下一層必出雞蛋
           </button>
           <button onclick="cheatAutoStack()" class="col-span-2 bg-emerald-900/60 hover:bg-emerald-800 border border-emerald-700/50 text-emerald-200 py-1.5 rounded-lg font-bold text-center">
-            🏗️ 快速自動追加 4 層 (安全期測試)
+            🏗️ 快速自動追加 4 層
           </button>
         </div>
       </div>
@@ -374,10 +327,7 @@
     const ctx = canvas.getContext('2d');
 
     let gameParams = {
-      safeLayers: 4,
-      maxOffsetRatio: 0.65,
-      fallFactor: 0.08,
-      baseSpeed: 2.2  // 減慢上方水平移動速度
+      baseSpeed: 2.2  // 上方水平移動速度
     };
 
     let isMuted = false;
@@ -404,14 +354,11 @@
     let playSeconds = 0.0;
     let timerInterval = null;
 
-    let pendingStoreAd = false; 
-    let postCrashIntentDrop = false; 
-
     // 25秒死鎖狀態：需要點擊才觸發廣告
     let adDeadlockReady = false;
 
-    // 安全期只在第一次開啟此廣告頁時適用
-    let isFirstGame = true;
+    // CTA 頁面狀態（一旦進入不可關閉）
+    let ctaActivated = false;
 
     // 餡料不包含起司
     const INGREDIENTS = [
@@ -421,7 +368,6 @@
       { name: '培根', color: '#dc2626', emoji: '🥓', minM: 1.2, maxM: 1.8 }
     ];
 
-    let forceNextOnion = false;
     let forceNextEgg = false;  // 雞蛋作弊標記
     let eggComboRemaining = 0; // 雞蛋連續自動疊層剩餘數
 
@@ -484,9 +430,9 @@
         document.getElementById('cheat-timer').innerText = playSeconds.toFixed(1) + " 秒";
         
         // 超過 25 秒：設定死鎖就緒狀態（但不自動彈出，需點擊觸發）
-        if (playSeconds >= 25.0 && !adDeadlockReady && !pendingStoreAd && gameState !== 'COLLECTED' && gameState !== 'GAMEOVER') {
+        if (playSeconds >= 25.0 && !adDeadlockReady && gameState !== 'COLLECTED') {
           adDeadlockReady = true;
-          logSystem("[時間鎖] 已超過 25 秒限制！下次點擊畫面時將觸發全局廣告攔截。");
+          logSystem("[時間鎖] 已超過 25 秒限制！下次點擊畫面時將觸發全局攔截。");
         }
 
         updateFlowHighlights();
@@ -495,15 +441,14 @@
 
     function resetCheatTimer() {
       playSeconds = 0.0;
-      pendingStoreAd = false;
       adDeadlockReady = false;
-      postCrashIntentDrop = false;
-      isFirstGame = true; // 回到第一次開啟廣告頁的狀態
+      ctaActivated = false;
       document.getElementById('cheat-timer').innerText = "0.0 秒";
-      dismissStoreAd(null);
       document.getElementById('msg-modal').classList.add('hidden');
-      document.getElementById('onion-wheel-overlay').classList.add('hidden');
-      logSystem("[作弊] 已重置整個廣告流程，回到第一次開啟廣告頁的狀態。");
+      document.getElementById('cta-page').classList.add('hidden');
+      document.getElementById('cta-store-popup').classList.add('hidden');
+      document.getElementById('game-controls').classList.remove('hidden');
+      logSystem("[作弊] 已重置整個廣告流程。");
       startGame();
     }
 
@@ -546,18 +491,7 @@
         playBeep(880, 0.1, 'sine', 0.08);
         setTimeout(() => playBeep(1100, 0.15, 'sine', 0.08), 80);
       }
-      if (effect === 'onion-spin') {
-        let cnt = 0;
-        let int = setInterval(() => {
-          playBeep(550 + Math.random() * 350, 0.04, 'square', 0.03);
-          cnt++;
-          if (cnt > 8) clearInterval(int);
-        }, 60);
-      }
-      if (effect === 'crash') {
-        playBeep(140, 0.5, 'sawtooth', 0.2);
-        playBeep(90, 0.7, 'triangle', 0.18);
-      }
+
       if (effect === 'cash') {
         playBeep(987, 0.08, 'sine', 0.1);
         setTimeout(() => playBeep(1318, 0.1, 'sine', 0.1), 80);
@@ -584,10 +518,8 @@
       cameraY = 0;
       currentCameraY = 0;
       isTransitioning = false;
-      forceNextOnion = false;
       forceNextEgg = false;
       eggComboRemaining = 0;
-      // 不重置 postCrashIntentDrop，讓失敗重試廣告機制跨局持續
 
       document.getElementById('msg-modal').classList.add('hidden');
       document.getElementById('multipliers-list').innerHTML = '';
@@ -629,13 +561,8 @@
         type = 'egg_start';
         forceNextEgg = false;
         eggComboRemaining = Math.floor(Math.random() * 4) + 3; // 3~6 層
-      } else if (forceNextOnion) {
-        type = 'onion';
-        forceNextOnion = false;
       } else {
-        if (placedLayers.length >= 3 && Math.random() < 0.15) {
-          type = 'onion';
-        } else if (placedLayers.length >= 2 && Math.random() < 0.12) {
+        if (placedLayers.length >= 2 && Math.random() < 0.12) {
           type = 'egg_start';
           eggComboRemaining = Math.floor(Math.random() * 4) + 3; // 3~6
         }
@@ -645,12 +572,9 @@
       let emoji = ing.emoji;
       let name = ing.name;
 
-      // 洋蔥和雞蛋在滑動時偽裝為普通食材，落地後才揭露
+      // 雞蛋在滑動時偽裝為普通食材，落地後才揭露
       // 真實類型保存在 type 中，外觀始終用 ing 的樣式
-      if (type === 'onion') {
-        // 滑動時顯示為普通食材外觀
-        name = '幸運洋蔥';
-      } else if (type === 'egg_start') {
+      if (type === 'egg_start') {
         name = '黃金雞蛋';
       }
 
@@ -682,19 +606,14 @@
     function handleDropButton(e) {
       if (e) e.stopPropagation();
       initAudioContext();
-      
-      // 超過25秒死鎖攔截
-      if (adDeadlockReady) {
-        logSystem("[時間鎖] 25秒死鎖生效，觸發廣告彈窗。");
-        triggerStoreAd();
-        return;
-      }
 
-      // 每次失敗重試，點擊加料按鈕時會彈跳一次廣告頁
-      if (postCrashIntentDrop) {
-        logSystem("[策略] 失敗重試階段，點擊加料觸發廣告彈窗。");
-        postCrashIntentDrop = false; 
-        triggerStoreAd();
+      // CTA 已啟動，忽略所有操作
+      if (ctaActivated) return;
+      
+      // 超過25秒死鎖攔截 → 直接進入 CTA 頁面
+      if (adDeadlockReady) {
+        logSystem("[階段B - 全局攔截] 25秒死鎖生效，觸發 CTA 頁面。");
+        enterCtaPage();
         return;
       }
 
@@ -733,12 +652,9 @@
       // 落地時揭露真實外觀
       let landedColor = activeLayer.color;
       let landedEmoji = activeLayer.emoji;
-      if (landedType === 'onion') {
-        landedColor = '#c084fc';
-        landedEmoji = '🧅';
-      } else if (landedType === 'egg_start') {
+      if (landedType === 'egg_start') {
         landedColor = '#fbbf24';
-        landedEmoji = '🥚';
+        landedEmoji = '�';
       }
 
       placedLayers.push({
@@ -753,15 +669,6 @@
 
       // 立即清除 activeLayer，防止下一幀渲染殘影
       activeLayer = null;
-
-      if (landedType === 'onion') {
-        recentMultipliers.push({ emoji: '🧅', text: 'Onion' });
-        updateUI();
-        setTimeout(() => {
-          autoTriggerOnionSpin();
-        }, 400);
-        return;
-      }
 
       if (landedType === 'egg_start') {
         // 雞蛋起始層落地：揭露後開始自動連蓋
@@ -852,57 +759,7 @@
       }
     }
 
-    function autoTriggerOnionSpin() {
-      gameState = 'ONION_WHEEL';
-      document.getElementById('onion-wheel-overlay').classList.remove('hidden');
-      document.getElementById('wheel-toast').innerText = "開始自動旋轉...";
-      playSound('onion-spin');
 
-      const odds = [1.5, 2.5, 3.5, 5.0, 8.0, 15.0];
-      const targetIdx = Math.floor(Math.random() * odds.length);
-      const chosenMult = odds[targetIdx];
-
-      // 真正旋轉轉盤：先加上 spinning class 讓轉盤持續轉動
-      const wheel = document.getElementById('onion-wheel');
-      wheel.classList.add('wheel-spinning');
-
-      // 縮短旋轉時間（原本3秒，現在1.5秒後停止）
-      const spinDuration = 1500;
-
-      setTimeout(() => {
-        // 停止連續旋轉
-        wheel.classList.remove('wheel-spinning');
-        
-        // 計算最終停止角度
-        const stopDegrees = 270 - (targetIdx * (360 / odds.length)) - (360 / odds.length / 2);
-        const totalSpin = 720 + stopDegrees;
-        wheel.style.transition = 'transform 0.8s cubic-bezier(0.1, 0.8, 0.1, 1)';
-        wheel.style.transform = `rotate(${totalSpin}deg)`;
-
-        setTimeout(() => {
-          playSound('perfect');
-          document.getElementById('wheel-toast').innerText = `🎁 恭喜獲得 ${chosenMult}x倍率！`;
-          
-          totalMultiplier *= chosenMult;
-
-          if (recentMultipliers.length > 0) {
-            recentMultipliers[recentMultipliers.length - 1].text = `x${chosenMult.toFixed(1)}`;
-          }
-
-          spawnLandingParticles(180, 240, '#a855f7', 25);
-
-          setTimeout(() => {
-            document.getElementById('onion-wheel-overlay').classList.add('hidden');
-            wheel.style.transition = '';
-            wheel.style.transform = 'rotate(0deg)';
-            gameState = 'PLAYING';
-            updateUI();
-            spawnNextLayer();
-          }, 800);
-
-        }, 800);
-      }, spinDuration);
-    }
 
     function gameLoop() {
       updateAnimation();
@@ -923,38 +780,7 @@
             activeLayer.y = activeLayer.targetY;
             activeLayer.dropping = false;
             
-            // 落地後進行偏移判定
-            const prev = placedLayers[placedLayers.length - 1];
-            const centerActive = activeLayer.x + (activeLayer.width / 2);
-            const centerPrev = prev.x + (prev.width / 2);
-            const offsetDistance = Math.abs(centerActive - centerPrev);
-            const offsetRatio = offsetDistance / prev.width;
-
-            logSystem(`[加料放置] 偏移率: ${offsetRatio.toFixed(3)} (臨界點: 0.65)`);
-
-            if (offsetRatio > gameParams.maxOffsetRatio) {
-              // 安全期只在第一次開啟此廣告頁時適用
-              if (!isFirstGame || placedLayers.length >= 5) {
-                triggerCrash("漢堡嚴重歪斜倒塌 💥");
-                return;
-              } else {
-                logSystem("[新手保護] 歪斜嚴重但在安全期內（首次遊戲前4層），自動修正並著陸！");
-              }
-            }
-
-            // 雪崩判定：安全期只在第一次遊戲時有效
-            if (!isFirstGame || placedLayers.length >= 5) {
-              const difficultyFactor = (placedLayers.length - (isFirstGame ? 4 : 0)) * gameParams.fallFactor + (offsetRatio * 0.35);
-              if (difficultyFactor > 0) {
-                const roll = Math.random();
-                logSystem(`[不平衡機率] ${(difficultyFactor*100).toFixed(0)}% | 隨機數: ${(roll*100).toFixed(0)}%`);
-                if (roll < difficultyFactor) {
-                  triggerCrash("高度傾斜導致漢堡崩塌 💥");
-                  return;
-                }
-              }
-            }
-
+            logSystem(`[加料放置] 成功著陸！`);
             landSuccess();
           }
         } else {
@@ -1058,9 +884,12 @@
     function collectEarnings(e) {
       if (e) e.stopPropagation();
 
+      // CTA 已啟動，忽略所有操作
+      if (ctaActivated) return;
+
       if (adDeadlockReady) {
-        logSystem("[時間鎖] 25秒死鎖生效，觸發廣告彈窗。");
-        triggerStoreAd();
+        logSystem("[時間鎖] 25秒死鎖生效，觸發全局攔截 → CTA 頁面。");
+        enterCtaPage();
         return;
       }
 
@@ -1069,9 +898,6 @@
       gameState = 'COLLECTED';
 
       logSystem("[出餐] 收工出餐！封蓋頂層麵包 🍞。");
-
-      // 出餐成功也結束安全期
-      isFirstGame = false;
 
       const last = placedLayers[placedLayers.length - 1];
       const layerHeight = 32;
@@ -1095,72 +921,13 @@
         }, 150);
 
         setTimeout(() => {
-          showResults(false);
-          
-          // 超過 12 秒出餐限制：先顯示報獎框，再跳出廣告
-          if (playSeconds > 12.0) {
-            logSystem("[出餐阻截] 遊玩大於 12 秒，報獎後彈出廣告彈窗。");
-            setTimeout(() => {
-              triggerStoreAd();
-            }, 1500);
-          }
+          // 出餐一律：先顯示報獎框 2 秒，再進入 CTA 頁面
+          logSystem("[階段A - 出餐限制] 顯示報獎框後導向 CTA 頁面。");
+          showRewardPopup(function() {
+            enterCtaPage();
+          });
         }, 500);
       }, 300);
-    }
-
-    function triggerCrash(reason) {
-      playSound('crash');
-      gameState = 'GAMEOVER';
-      logSystem(`[倒塌] ${reason}`);
-
-      // 第一次遊戲結束後，安全期不再適用
-      isFirstGame = false;
-
-      spawnLandingParticles(width / 2, height / 2, '#ef4444', 45);
-
-      // 每次失敗都註冊重試廣告
-      postCrashIntentDrop = true;
-      logSystem("[策略註冊] 下次點擊「加料」時將彈出商店廣告。");
-
-      setTimeout(() => {
-        showResults(true);
-      }, 800);
-    }
-
-    function showResults(isCrash) {
-      const modal = document.getElementById('msg-modal');
-      const icon = document.getElementById('modal-icon');
-      const title = document.getElementById('modal-title');
-      const desc = document.getElementById('modal-desc');
-
-      const mLayers = document.getElementById('modal-stat-layers');
-      const mMult = document.getElementById('modal-stat-mult');
-      const mEarnings = document.getElementById('modal-stat-earnings');
-
-      modal.classList.remove('hidden');
-
-      if (isCrash) {
-        icon.innerText = "💥";
-        title.innerText = "漢堡倒塌了！";
-        title.className = "text-md font-black text-red-500 mb-2";
-        desc.innerText = "好可惜！漢堡偏重不穩。請再接再厲！";
-
-        mLayers.innerText = `${placedLayers.length - 1} 層`;
-        mMult.innerText = "0.00x";
-        mEarnings.innerText = "$0";
-        mEarnings.className = "text-red-500 font-extrabold text-sm";
-      } else {
-        icon.innerText = "🏆";
-        title.innerText = "順利出餐！";
-        title.className = "text-md font-black text-emerald-500 mb-2";
-        desc.innerText = "恭喜完成訂單！美味的配料成功賺取了對應收益！";
-
-        const finalEarn = Math.round(balance * totalMultiplier);
-        mLayers.innerText = `${placedLayers.length - 2} 層`; 
-        mMult.innerText = `${totalMultiplier.toFixed(2)}x`;
-        mEarnings.innerText = `$${finalEarn.toLocaleString()}`;
-        mEarnings.className = "text-emerald-400 font-extrabold text-sm";
-      }
     }
 
     function updateUI() {
@@ -1193,29 +960,59 @@
       }
     }
 
-    function triggerStoreAd() {
-      pendingStoreAd = true;
-      document.getElementById('store-ad-modal').classList.remove('hidden');
+    // --- 簡化版報獎框（統一使用 msg-modal） ---
+    function showRewardPopup(callback) {
+      const modal = document.getElementById('msg-modal');
+      const amountEl = document.getElementById('msg-modal-amount');
+      const finalEarn = Math.round(balance * totalMultiplier);
+      amountEl.innerText = `$${finalEarn.toLocaleString()}`;
+      modal.classList.remove('hidden');
+      logSystem(`[報獎框] 顯示中 ($${finalEarn.toLocaleString()})... 2 秒後自動關閉`);
+
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        logSystem("[報獎框] 已自動關閉。");
+        if (callback && typeof callback === 'function') {
+          callback();
+        }
+      }, 2000);
     }
 
-    function dismissStoreAd(e) {
-      if (e) e.stopPropagation();
-      document.getElementById('store-ad-modal').classList.add('hidden');
-      pendingStoreAd = false;
-      
-      if (adDeadlockReady) {
-        logSystem("[時間鎖] 廣告已關閉。再次點擊畫面仍會觸發廣告彈窗。");
-      }
+    // --- CTA 頁面進入（不可關閉，不可回到遊戲） ---
+    function enterCtaPage() {
+      ctaActivated = true;
+      gameState = 'CTA';
+
+      // 隱藏所有其他彈窗
+      document.getElementById('msg-modal').classList.add('hidden');
+
+      // 隱藏遊戲控制按鈕
+      document.getElementById('game-controls').classList.add('hidden');
+
+      // 顯示 CTA 頁面
+      document.getElementById('cta-page').classList.remove('hidden');
+      logSystem("[CTA 頁面] 已進入 CTA 頁面，無法返回遊戲。");
+    }
+
+    // --- CTA 頁面「一鍵暴富」按鈕 → 顯示商店彈窗 ---
+    function showCtaStorePopup() {
+      document.getElementById('cta-store-popup').classList.remove('hidden');
+      logSystem("[CTA 商店] 商店頁面彈窗已開啟。");
     }
 
     function handlePhoneClick(e) {
       initAudioContext();
-      // 25秒死鎖：關閉廣告後點擊畫面會再次觸發
+
+      // CTA 已啟動，忽略（CTA 頁面有自己的按鈕處理）
+      if (ctaActivated) return;
+
+      // 階段 B (全局攔截)：25秒死鎖，任意點擊直接進入 CTA 頁面
       if (adDeadlockReady) {
-        const isAdClick = document.getElementById('store-ad-modal').contains(e.target);
-        if (!isAdClick) {
-          logSystem("[強制召回] 25秒死鎖生效，點擊畫面召回下載彈窗。");
-          triggerStoreAd();
+        const isCtaClick = document.getElementById('cta-page').contains(e.target);
+        const isCtaStoreClick = document.getElementById('cta-store-popup').contains(e.target);
+        if (!isCtaClick && !isCtaStoreClick) {
+          logSystem("[階段B - 全局攔截] 25秒死鎖生效，任意點擊直接導向 CTA 頁面。");
+          enterCtaPage();
         }
       }
     }
@@ -1233,11 +1030,6 @@
           size: 2 + Math.random() * 4
         });
       }
-    }
-
-    function triggerCheatOnion() {
-      forceNextOnion = true;
-      logSystem("[作弊] 已鎖定下一層強制為幸運洋蔥 🧅");
     }
 
     function triggerCheatEgg() {
@@ -1308,66 +1100,17 @@
     function updateFlowHighlights() {
       document.querySelectorAll('.flow-node').forEach(n => n.classList.remove('active', 'active-danger'));
 
-      const nodeUnder15 = document.getElementById('flow-under-15');
       const nodeOver20 = document.getElementById('flow-over-20');
       const nodeOver30 = document.getElementById('flow-over-30');
-      const nodeSafe = document.getElementById('flow-safe-logic');
 
       if (playSeconds >= 25.0) {
         nodeOver30.classList.add('active-danger');
-      } else if (playSeconds > 12.0) {
+      } else {
         nodeOver20.classList.add('active');
       }
-      
-      // 失敗重試標記活躍
-      if (postCrashIntentDrop) {
-        nodeUnder15.classList.add('active');
-      }
-
-      if (isFirstGame && placedLayers.length < 5) {
-        nodeSafe.classList.add('active');
-      }
     }
 
-    function drawOnionWheelCanvas() {
-      const wCanvas = document.getElementById('wheelCanvas');
-      if (!wCanvas) return;
-      const wCtx = wCanvas.getContext('2d');
-      const cx = wCanvas.width / 2;
-      const cy = wCanvas.height / 2;
-      const r = cx - 8;
-      
-      const odds = [1.5, 2.5, 3.5, 5.0, 8.0, 15.0];
-      const colors = ['#f472b6', '#c084fc', '#818cf8', '#60a5fa', '#34d399', '#fbbf24'];
-      const sliceAngle = (Math.PI * 2) / odds.length;
 
-      for (let i = 0; i < odds.length; i++) {
-        const start = i * sliceAngle;
-        const end = start + sliceAngle;
-        
-        wCtx.fillStyle = colors[i];
-        wCtx.beginPath();
-        wCtx.moveTo(cx, cy);
-        wCtx.arc(cx, cy, r, start, end);
-        wCtx.closePath();
-        wCtx.fill();
-
-        wCtx.strokeStyle = '#ffffff';
-        wCtx.lineWidth = 1;
-        wCtx.stroke();
-
-        wCtx.save();
-        wCtx.translate(cx, cy);
-        wCtx.rotate(start + sliceAngle/2);
-        wCtx.textAlign = 'right';
-        wCtx.fillStyle = '#ffffff';
-        wCtx.font = 'bold 11px Arial';
-        wCtx.fillText(odds[i] + "x", r - 12, 4);
-        wCtx.restore();
-      }
-    }
-    
-    setTimeout(drawOnionWheelCanvas, 100);
 
   </script>
 </body>
