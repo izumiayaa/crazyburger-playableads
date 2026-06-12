@@ -126,8 +126,8 @@
           <div class="absolute top-8 right-3 flex flex-col items-end space-y-2 z-20 pointer-events-none">
             <!-- 倍數盾牌 -->
             <div class="bg-gradient-to-b from-blue-400 to-blue-600 text-white border-2 border-sky-300 rounded-xl p-1.5 shadow-md flex flex-col items-center min-w-[65px]">
-              <span class="text-[8px] font-bold tracking-wider uppercase opacity-90">目前倍數</span>
-              <span id="hud-multiplier" class="text-sm font-black tracking-tighter">1.00x</span>
+              <span class="text-[8px] font-bold tracking-wider uppercase opacity-90">目前層數</span>
+              <span id="hud-multiplier" class="text-sm font-black tracking-tighter">0 層</span>
             </div>
 
             <!-- 歷史倍數列表 -->
@@ -161,6 +161,15 @@
 
               <!-- 提示文字 -->
               <div id="wheel-toast" class="text-xs text-yellow-300 font-bold mt-3 h-4"></div>
+            </div>
+          </div>
+
+          <!-- 雞蛋加蓋機會提示 Banner -->
+          <div id="egg-combo-banner" class="absolute top-16 left-0 w-full flex justify-center z-30 pointer-events-none hidden">
+            <div class="bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-black px-5 py-2 rounded-full shadow-lg text-sm flex items-center space-x-2 animate-bounce border-2 border-yellow-200">
+              <span class="text-lg">🥚</span>
+              <span>加蓋機會!</span>
+              <span id="egg-combo-count" class="bg-white/80 text-amber-700 px-2 py-0.5 rounded-full text-xs font-black">x3</span>
             </div>
           </div>
 
@@ -346,6 +355,9 @@
           <button onclick="triggerCheatOnion()" class="bg-purple-900/60 hover:bg-purple-800 border border-purple-700/50 text-purple-200 py-1.5 rounded-lg font-bold">
             🧅 下一層必出洋蔥
           </button>
+          <button onclick="triggerCheatEgg()" class="bg-yellow-900/60 hover:bg-yellow-800 border border-yellow-700/50 text-yellow-200 py-1.5 rounded-lg font-bold">
+            🥚 下一層必出雞蛋
+          </button>
           <button onclick="cheatAutoStack()" class="col-span-2 bg-emerald-900/60 hover:bg-emerald-800 border border-emerald-700/50 text-emerald-200 py-1.5 rounded-lg font-bold text-center">
             🏗️ 快速自動追加 4 層 (安全期測試)
           </button>
@@ -410,6 +422,8 @@
     ];
 
     let forceNextOnion = false;
+    let forceNextEgg = false;  // 雞蛋作弊標記
+    let eggComboRemaining = 0; // 雞蛋連續自動疊層剩餘數
 
     // --- 音效延遲懶載入優化 ---
     let audioCtx = null;
@@ -571,10 +585,13 @@
       currentCameraY = 0;
       isTransitioning = false;
       forceNextOnion = false;
+      forceNextEgg = false;
+      eggComboRemaining = 0;
       // 不重置 postCrashIntentDrop，讓失敗重試廣告機制跨局持續
 
       document.getElementById('msg-modal').classList.add('hidden');
       document.getElementById('multipliers-list').innerHTML = '';
+      document.getElementById('egg-combo-banner').classList.add('hidden');
 
       placedLayers.push({
         x: (width / 2) - 70, 
@@ -608,12 +625,19 @@
       let type = 'normal';
       let ing = INGREDIENTS[Math.floor(Math.random() * INGREDIENTS.length)];
 
-      if (forceNextOnion) {
+      if (forceNextEgg) {
+        type = 'egg_start';
+        forceNextEgg = false;
+        eggComboRemaining = Math.floor(Math.random() * 4) + 3; // 3~6 層
+      } else if (forceNextOnion) {
         type = 'onion';
         forceNextOnion = false;
       } else {
         if (placedLayers.length >= 3 && Math.random() < 0.15) {
           type = 'onion';
+        } else if (placedLayers.length >= 2 && Math.random() < 0.12) {
+          type = 'egg_start';
+          eggComboRemaining = Math.floor(Math.random() * 4) + 3; // 3~6
         }
       }
 
@@ -621,14 +645,17 @@
       let emoji = ing.emoji;
       let name = ing.name;
 
+      // 洋蔥和雞蛋在滑動時偽裝為普通食材，落地後才揭露
+      // 真實類型保存在 type 中，外觀始終用 ing 的樣式
       if (type === 'onion') {
-        color = '#c084fc';
-        emoji = '🧅';
+        // 滑動時顯示為普通食材外觀
         name = '幸運洋蔥';
+      } else if (type === 'egg_start') {
+        name = '黃金雞蛋';
       }
 
       let prevWidth = placedLayers[placedLayers.length - 1].width;
-      let nextWidth = Math.max(85, prevWidth - (placedLayers.length * 0.8));
+      let nextWidth = prevWidth; // 固定寬度，不變窄
 
       // 新一層餡料在畫面最上方左右滑動
       activeLayer = {
@@ -696,19 +723,38 @@
         } else {
           m = parseFloat((1.1 + Math.random() * 1.4).toFixed(2));
         }
+      } else if (activeLayer.type === 'egg_start') {
+        // 雞蛋起始層：倍數 1x~3x
+        m = parseFloat((1.0 + Math.random() * 2.0).toFixed(2));
+      }
+
+      const landedType = activeLayer.type;
+      
+      // 落地時揭露真實外觀
+      let landedColor = activeLayer.color;
+      let landedEmoji = activeLayer.emoji;
+      if (landedType === 'onion') {
+        landedColor = '#c084fc';
+        landedEmoji = '🧅';
+      } else if (landedType === 'egg_start') {
+        landedColor = '#fbbf24';
+        landedEmoji = '🥚';
       }
 
       placedLayers.push({
         x: activeLayer.x,
         width: activeLayer.width,
         y: activeLayer.targetY,
-        type: activeLayer.type,
-        color: activeLayer.color,
-        emoji: activeLayer.emoji,
+        type: landedType,
+        color: landedColor,
+        emoji: landedEmoji,
         multiplier: m
       });
 
-      if (activeLayer.type === 'onion') {
+      // 立即清除 activeLayer，防止下一幀渲染殘影
+      activeLayer = null;
+
+      if (landedType === 'onion') {
         recentMultipliers.push({ emoji: '🧅', text: 'Onion' });
         updateUI();
         setTimeout(() => {
@@ -717,13 +763,93 @@
         return;
       }
 
+      if (landedType === 'egg_start') {
+        // 雞蛋起始層落地：揭露後開始自動連蓋
+        totalMultiplier *= m;
+        recentMultipliers.push({ emoji: '🥚', text: `x${m.toFixed(2)}` });
+        logSystem(`[🥚 加蓋機會] 觸發！x${m.toFixed(2)} 倍，即將連續自動加蓋 ${eggComboRemaining} 層`);
+        showEggBanner(eggComboRemaining);
+        showEggBanner(eggComboRemaining);
+        updateUI();
+
+        setTimeout(() => {
+          spawnAndAutoDropNext();
+        }, 150);
+        return;
+      }
+
       totalMultiplier *= m;
-      recentMultipliers.push({ emoji: activeLayer.emoji, text: `x${m.toFixed(2)}` });
+      recentMultipliers.push({ emoji: landedEmoji, text: `x${m.toFixed(2)}` });
       updateUI();
 
       setTimeout(() => {
         spawnNextLayer();
       }, 600);
+    }
+
+    function showEggBanner(remaining) {
+      const banner = document.getElementById('egg-combo-banner');
+      const countEl = document.getElementById('egg-combo-count');
+      banner.classList.remove('hidden');
+      countEl.innerText = `剩餘 ${remaining} 層`;
+    }
+
+    function hideEggBanner() {
+      document.getElementById('egg-combo-banner').classList.add('hidden');
+    }
+
+    // 加蓋機會：直接自動幫玩家快速蓋一層（不需玩家操作）
+    function spawnAndAutoDropNext() {
+      if (gameState !== 'PLAYING') return;
+
+      const topY = placedLayers[placedLayers.length - 1].y;
+      const layerHeight = 32;
+      const targetY = topY - layerHeight;
+
+      if (placedLayers.length > 3) {
+        cameraY = (placedLayers.length - 3) * layerHeight;
+      }
+
+      const ing = INGREDIENTS[Math.floor(Math.random() * INGREDIENTS.length)];
+      const prev = placedLayers[placedLayers.length - 1];
+      // 連蓋時保持相同寬度，不變窄
+      const nextWidth = prev.width;
+      const x = prev.x;
+
+      // 計算倍數 1x~3x
+      const m = parseFloat((1.0 + Math.random() * 2.0).toFixed(2));
+
+      playSound('perfect');
+      spawnLandingParticles(x + nextWidth/2, targetY + 12, ing.color);
+
+      placedLayers.push({
+        x: x,
+        width: nextWidth,
+        y: targetY,
+        type: 'egg_combo',
+        color: ing.color,
+        emoji: ing.emoji,
+        multiplier: m
+      });
+
+      eggComboRemaining--;
+      totalMultiplier *= m;
+      recentMultipliers.push({ emoji: ing.emoji, text: `x${m.toFixed(2)}` });
+      logSystem(`[🥚 加蓋機會] x${m.toFixed(2)} 倍！剩餘 ${eggComboRemaining} 層`);
+      showEggBanner(eggComboRemaining);
+      updateUI();
+
+      if (eggComboRemaining > 0) {
+        setTimeout(() => {
+          spawnAndAutoDropNext();
+        }, 150);
+      } else {
+        logSystem("[🥚 加蓋機會] 結束！恢復正常模式。");
+        hideEggBanner();
+        setTimeout(() => {
+          spawnNextLayer();
+        }, 600);
+      }
     }
 
     function autoTriggerOnionSpin() {
@@ -1041,7 +1167,7 @@
       const displayMult = totalMultiplier.toFixed(2);
       const estEarnings = Math.round(balance * totalMultiplier);
 
-      document.getElementById('hud-multiplier').innerText = `${displayMult}x`;
+      document.getElementById('hud-multiplier').innerText = `${Math.max(0, placedLayers.length - 1)} 層`;
 
       const listDiv = document.getElementById('multipliers-list');
       listDiv.innerHTML = '';
@@ -1112,6 +1238,13 @@
     function triggerCheatOnion() {
       forceNextOnion = true;
       logSystem("[作弊] 已鎖定下一層強制為幸運洋蔥 🧅");
+    }
+
+    function triggerCheatEgg() {
+      forceNextEgg = true;
+      eggComboRemaining = Math.floor(Math.random() * 4) + 3; // 3~6 層
+      showEggBanner(eggComboRemaining);
+      logSystem(`[作弊] 已鎖定下一層觸發加蓋機會 🥚（連續 ${eggComboRemaining} 層）`);
     }
 
     function cheatAutoStack() {
