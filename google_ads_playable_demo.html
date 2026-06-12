@@ -155,43 +155,6 @@
             </button>
           </div>
 
-          <!-- 商店廣告強彈彈窗 -->
-          <div id="store-ad-modal" class="absolute inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-5 z-50 hidden">
-            <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-[280px] p-5 relative flex flex-col items-center text-center shadow-2xl">
-              <!-- 關閉按鈕 -->
-              <button id="close-store-ad" onclick="dismissStoreAd(event)" class="absolute top-3 right-3 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-6 h-6 rounded-full flex items-center justify-center text-xs transition">
-                <i class="fa-solid fa-xmark"></i>
-              </button>
-
-              <!-- 漢堡圖標 -->
-              <div class="w-16 h-16 bg-gradient-to-tr from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-3xl shadow-lg mb-3 animate-bounce">
-                🍔
-              </div>
-
-              <h4 class="text-white font-black text-md">超級漢堡大亨：疊高高</h4>
-              <p class="text-slate-400 text-[10px] mb-2">Burger Tycoon: Stack High</p>
-
-              <!-- 評分星等 -->
-              <div class="flex items-center space-x-1 text-yellow-400 text-xs mb-4">
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star"></i>
-                <i class="fa-solid fa-star-half-stroke"></i>
-                <span class="text-slate-300 text-[10px] ml-1">(4.8★) 5,000萬+下載</span>
-              </div>
-
-              <p class="text-slate-300 text-xs mb-5 leading-relaxed">
-                極致絲滑的解壓疊漢堡！現在免費下載，即可獲得限量「黃金骰子配方」！
-              </p>
-
-              <!-- 下載按鈕 -->
-              <a href="https://play.google.com" target="_blank" onclick="dismissStoreAd(event)" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 text-slate-950 font-black text-sm rounded-xl transition active:scale-95 shadow-md block text-center">
-                立即安裝遊玩 🚀
-              </a>
-            </div>
-          </div>
-
           <!-- CTA 頁面（不可關閉） -->
           <div id="cta-page" class="absolute inset-0 bg-gradient-to-b from-[#1a0a2e] via-[#2d1b4e] to-[#0f0c29] flex flex-col items-center justify-center p-5 z-[70] hidden">
             <!-- 遊戲 LOGO + 機台名稱 -->
@@ -300,20 +263,12 @@
           </p>
           
           <div class="space-y-2 text-xs">
-            <div id="flow-under-15" class="flow-node bg-slate-800/40 p-2.5 rounded-lg flex flex-col space-y-1">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-slate-200">失敗重試 (每次倒塌)</span>
-                <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300">可以關閉</span>
-              </div>
-              <p class="text-[10px] text-slate-400">每次倒塌後，再次點擊「加料」時將跳出商店廣告一次，關閉後可繼續遊玩。</p>
-            </div>
-
             <div id="flow-over-20" class="flow-node bg-slate-800/40 p-2.5 rounded-lg flex flex-col space-y-1">
               <div class="flex justify-between items-center">
-                <span class="font-bold text-slate-200">階段A：出餐限制 (&gt;12秒)</span>
+                <span class="font-bold text-slate-200">階段A：出餐限制</span>
                 <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-900/40 text-amber-200 font-bold">報獎→CTA</span>
               </div>
-              <p class="text-[10px] text-slate-400">超過 12 秒後點擊「出餐」，先彈報獎框(2秒)，再直接導向 CTA 頁面（不可關閉）。</p>
+              <p class="text-[10px] text-slate-400">點擊「出餐」，先彈報獎框(2秒)，再直接導向 CTA 頁面（不可關閉）。</p>
             </div>
 
             <div id="flow-over-30" class="flow-node bg-slate-800/40 p-2.5 rounded-lg flex flex-col space-y-1">
@@ -322,11 +277,6 @@
                 <span class="text-[9px] px-1.5 py-0.5 rounded bg-red-900/40 text-red-200 font-bold">任意點擊→CTA</span>
               </div>
               <p class="text-[10px] text-slate-400">超過 25 秒後，任意點擊畫面直接導向 CTA 頁面（不可關閉、不可返回遊戲）。</p>
-            </div>
-
-            <div id="flow-safe-logic" class="flow-node bg-slate-800/40 p-2.5 rounded-lg flex flex-col space-y-1">
-              <span class="font-bold text-emerald-400">漢堡安全期（僅首次）</span>
-              <p class="text-[10px] text-slate-400">前 4 層擁有完美保護，僅在第一次開啟廣告頁時適用。之後的遊戲從第 1 層起即有可能倒塌。</p>
             </div>
           </div>
         </div>
@@ -362,7 +312,7 @@
             🥚 下一層必出雞蛋
           </button>
           <button onclick="cheatAutoStack()" class="col-span-2 bg-emerald-900/60 hover:bg-emerald-800 border border-emerald-700/50 text-emerald-200 py-1.5 rounded-lg font-bold text-center">
-            🏗️ 快速自動追加 4 層 (安全期測試)
+            🏗️ 快速自動追加 4 層
           </button>
         </div>
       </div>
@@ -377,10 +327,7 @@
     const ctx = canvas.getContext('2d');
 
     let gameParams = {
-      safeLayers: 4,
-      maxOffsetRatio: 0.65,
-      fallFactor: 0.08,
-      baseSpeed: 2.2  // 減慢上方水平移動速度
+      baseSpeed: 2.2  // 上方水平移動速度
     };
 
     let isMuted = false;
@@ -407,14 +354,8 @@
     let playSeconds = 0.0;
     let timerInterval = null;
 
-    let pendingStoreAd = false; 
-    let postCrashIntentDrop = false; 
-
     // 25秒死鎖狀態：需要點擊才觸發廣告
     let adDeadlockReady = false;
-
-    // 安全期只在第一次開啟此廣告頁時適用
-    let isFirstGame = true;
 
     // CTA 頁面狀態（一旦進入不可關閉）
     let ctaActivated = false;
@@ -489,9 +430,9 @@
         document.getElementById('cheat-timer').innerText = playSeconds.toFixed(1) + " 秒";
         
         // 超過 25 秒：設定死鎖就緒狀態（但不自動彈出，需點擊觸發）
-        if (playSeconds >= 25.0 && !adDeadlockReady && !pendingStoreAd && gameState !== 'COLLECTED' && gameState !== 'GAMEOVER') {
+        if (playSeconds >= 25.0 && !adDeadlockReady && gameState !== 'COLLECTED') {
           adDeadlockReady = true;
-          logSystem("[時間鎖] 已超過 25 秒限制！下次點擊畫面時將觸發全局廣告攔截。");
+          logSystem("[時間鎖] 已超過 25 秒限制！下次點擊畫面時將觸發全局攔截。");
         }
 
         updateFlowHighlights();
@@ -500,18 +441,14 @@
 
     function resetCheatTimer() {
       playSeconds = 0.0;
-      pendingStoreAd = false;
       adDeadlockReady = false;
-      postCrashIntentDrop = false;
       ctaActivated = false;
-      isFirstGame = true; // 回到第一次開啟廣告頁的狀態
       document.getElementById('cheat-timer').innerText = "0.0 秒";
-      dismissStoreAd(null);
       document.getElementById('msg-modal').classList.add('hidden');
       document.getElementById('cta-page').classList.add('hidden');
       document.getElementById('cta-store-popup').classList.add('hidden');
       document.getElementById('game-controls').classList.remove('hidden');
-      logSystem("[作弊] 已重置整個廣告流程，回到第一次開啟廣告頁的狀態。");
+      logSystem("[作弊] 已重置整個廣告流程。");
       startGame();
     }
 
@@ -555,10 +492,6 @@
         setTimeout(() => playBeep(1100, 0.15, 'sine', 0.08), 80);
       }
 
-      if (effect === 'crash') {
-        playBeep(140, 0.5, 'sawtooth', 0.2);
-        playBeep(90, 0.7, 'triangle', 0.18);
-      }
       if (effect === 'cash') {
         playBeep(987, 0.08, 'sine', 0.1);
         setTimeout(() => playBeep(1318, 0.1, 'sine', 0.1), 80);
@@ -587,7 +520,6 @@
       isTransitioning = false;
       forceNextEgg = false;
       eggComboRemaining = 0;
-      // 不重置 postCrashIntentDrop，讓失敗重試廣告機制跨局持續
 
       document.getElementById('msg-modal').classList.add('hidden');
       document.getElementById('multipliers-list').innerHTML = '';
@@ -682,14 +614,6 @@
       if (adDeadlockReady) {
         logSystem("[階段B - 全局攔截] 25秒死鎖生效，觸發 CTA 頁面。");
         enterCtaPage();
-        return;
-      }
-
-      // 每次失敗重試，點擊加料按鈕時會彈跳一次廣告頁
-      if (postCrashIntentDrop) {
-        logSystem("[策略] 失敗重試階段，點擊加料觸發廣告彈窗。");
-        postCrashIntentDrop = false; 
-        triggerStoreAd();
         return;
       }
 
@@ -856,38 +780,7 @@
             activeLayer.y = activeLayer.targetY;
             activeLayer.dropping = false;
             
-            // 落地後進行偏移判定
-            const prev = placedLayers[placedLayers.length - 1];
-            const centerActive = activeLayer.x + (activeLayer.width / 2);
-            const centerPrev = prev.x + (prev.width / 2);
-            const offsetDistance = Math.abs(centerActive - centerPrev);
-            const offsetRatio = offsetDistance / prev.width;
-
-            logSystem(`[加料放置] 偏移率: ${offsetRatio.toFixed(3)} (臨界點: 0.65)`);
-
-            if (offsetRatio > gameParams.maxOffsetRatio) {
-              // 安全期只在第一次開啟此廣告頁時適用
-              if (!isFirstGame || placedLayers.length >= 5) {
-                triggerCrash("漢堡嚴重歪斜倒塌 💥");
-                return;
-              } else {
-                logSystem("[新手保護] 歪斜嚴重但在安全期內（首次遊戲前4層），自動修正並著陸！");
-              }
-            }
-
-            // 雪崩判定：安全期只在第一次遊戲時有效
-            if (!isFirstGame || placedLayers.length >= 5) {
-              const difficultyFactor = (placedLayers.length - (isFirstGame ? 4 : 0)) * gameParams.fallFactor + (offsetRatio * 0.35);
-              if (difficultyFactor > 0) {
-                const roll = Math.random();
-                logSystem(`[不平衡機率] ${(difficultyFactor*100).toFixed(0)}% | 隨機數: ${(roll*100).toFixed(0)}%`);
-                if (roll < difficultyFactor) {
-                  triggerCrash("高度傾斜導致漢堡崩塌 💥");
-                  return;
-                }
-              }
-            }
-
+            logSystem(`[加料放置] 成功著陸！`);
             landSuccess();
           }
         } else {
@@ -1006,9 +899,6 @@
 
       logSystem("[出餐] 收工出餐！封蓋頂層麵包 🍞。");
 
-      // 出餐成功也結束安全期
-      isFirstGame = false;
-
       const last = placedLayers[placedLayers.length - 1];
       const layerHeight = 32;
 
@@ -1038,42 +928,6 @@
           });
         }, 500);
       }, 300);
-    }
-
-    function triggerCrash(reason) {
-      playSound('crash');
-      gameState = 'GAMEOVER';
-      logSystem(`[倒塌] ${reason}`);
-
-      // 第一次遊戲結束後，安全期不再適用
-      isFirstGame = false;
-
-      spawnLandingParticles(width / 2, height / 2, '#ef4444', 45);
-
-      // 每次失敗都註冊重試廣告
-      postCrashIntentDrop = true;
-      logSystem("[策略註冊] 下次點擊「加料」時將彈出商店廣告。");
-
-      setTimeout(() => {
-        showResults(true);
-      }, 800);
-    }
-
-    function showResults(isCrash) {
-      // 統一使用簡化版報獎框
-      const modal = document.getElementById('msg-modal');
-      const amountEl = document.getElementById('msg-modal-amount');
-      const finalEarn = Math.round(balance * totalMultiplier);
-      amountEl.innerText = `$${finalEarn.toLocaleString()}`;
-      modal.classList.remove('hidden');
-      logSystem(`[報獎框] 結算顯示中 ($${finalEarn.toLocaleString()})，2 秒後自動關閉...`);
-
-      // 2 秒後自動關閉並重新開始遊戲
-      setTimeout(() => {
-        modal.classList.add('hidden');
-        logSystem("[報獎框] 已自動關閉，重新開始遊戲。");
-        startGame();
-      }, 2000);
     }
 
     function updateUI() {
@@ -1106,21 +960,6 @@
       }
     }
 
-    function triggerStoreAd() {
-      pendingStoreAd = true;
-      document.getElementById('store-ad-modal').classList.remove('hidden');
-    }
-
-    function dismissStoreAd(e) {
-      if (e) e.stopPropagation();
-      document.getElementById('store-ad-modal').classList.add('hidden');
-      pendingStoreAd = false;
-      
-      if (adDeadlockReady) {
-        logSystem("[時間鎖] 廣告已關閉。再次點擊畫面仍會觸發廣告彈窗。");
-      }
-    }
-
     // --- 簡化版報獎框（統一使用 msg-modal） ---
     function showRewardPopup(callback) {
       const modal = document.getElementById('msg-modal');
@@ -1145,7 +984,6 @@
       gameState = 'CTA';
 
       // 隱藏所有其他彈窗
-      document.getElementById('store-ad-modal').classList.add('hidden');
       document.getElementById('msg-modal').classList.add('hidden');
 
       // 隱藏遊戲控制按鈕
@@ -1170,10 +1008,9 @@
 
       // 階段 B (全局攔截)：25秒死鎖，任意點擊直接進入 CTA 頁面
       if (adDeadlockReady) {
-        const isAdClick = document.getElementById('store-ad-modal').contains(e.target);
         const isCtaClick = document.getElementById('cta-page').contains(e.target);
         const isCtaStoreClick = document.getElementById('cta-store-popup').contains(e.target);
-        if (!isAdClick && !isCtaClick && !isCtaStoreClick) {
+        if (!isCtaClick && !isCtaStoreClick) {
           logSystem("[階段B - 全局攔截] 25秒死鎖生效，任意點擊直接導向 CTA 頁面。");
           enterCtaPage();
         }
@@ -1263,24 +1100,13 @@
     function updateFlowHighlights() {
       document.querySelectorAll('.flow-node').forEach(n => n.classList.remove('active', 'active-danger'));
 
-      const nodeUnder15 = document.getElementById('flow-under-15');
       const nodeOver20 = document.getElementById('flow-over-20');
       const nodeOver30 = document.getElementById('flow-over-30');
-      const nodeSafe = document.getElementById('flow-safe-logic');
 
       if (playSeconds >= 25.0) {
         nodeOver30.classList.add('active-danger');
-      } else if (playSeconds > 12.0) {
+      } else {
         nodeOver20.classList.add('active');
-      }
-      
-      // 失敗重試標記活躍
-      if (postCrashIntentDrop) {
-        nodeUnder15.classList.add('active');
-      }
-
-      if (isFirstGame && placedLayers.length < 5) {
-        nodeSafe.classList.add('active');
       }
     }
 
